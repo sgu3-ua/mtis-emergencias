@@ -1,0 +1,9 @@
+emergencias-rest/node_modules/
+emergencias-rest/dist/
+*.log
+.env
+.DS_Store
+coverage/
+.idea/
+.vscode/
+*.iml

@@ -1,0 +1,1054 @@
+openapi: 3.0.0
+info:
+  description: "API REST para la gestión integral de emergencias. Incluye consulta\
+    \ de disponibilidad, asignación de rutas y despacho de bomberos, gestión de recursos\
+    \ sanitarios y hospitalarios para incidentes (personal, camas y transporte), y\
+    \ coordinación de recursos policiales para jurisdicción y despacho."
+  title: API Sistema Integral de Emergencias 112
+  version: 1.0.0
+servers:
+- description: Servidor Local de Desarrollo
+  url: http://localhost:8080/api/v1
+- description: Servicio de Recursos Policiales
+  url: http://localhost:8081
+tags:
+- description: Consulta y gestión del inventario de los parques de bomberos
+  name: Bomberos - Flota
+- description: Cálculo de distancias y recorridos GPS
+  name: Rutas
+- description: Actualización de estados hacia la centralita del 112
+  name: Incidentes
+- description: Orquestación principal del proceso de movilización
+  name: Bomberos - Despachos
+- description: "Gestión y asignación de recursos sanitarios, camas y transporte para\
+    \ la atención hospitalaria"
+  name: Hospitales - Recursos
+- description: Servicio para envío de avisos a camiones y responsables
+  name: Bomberos - Notificaciones
+- description: Orquestación del proceso integral de gestión policial
+  name: Policía - Gestiones
+- description: Identificación de territorio y competencias policiales
+  name: Policía - Jurisdicciones
+- description: Consulta de disponibilidad de unidades policiales
+  name: Policía - Recursos
+- description: Registro y cierre de asignaciones policiales
+  name: Policía - Despachos
+- description: Envío de avisos electrónicos a patrullas
+  name: Policía - Notificaciones
+- description: Inicia el servicio de gestion de recursos hospitalarios
+  name: Gestion de recursos hospitalarios
+paths:
+  /parques/{id}/flota:
+    get:
+      description: Obtiene la lista de vehículos disponibles en un parque específico
+        según su estado y tipo.
+      operationId: parquesIdFlotaGET
+      parameters:
+      - description: ID parque de bomberos
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: "Filtrar por estado actual (disponible, en_ruta, mantenimiento)"
+        explode: true
+        in: query
+        name: estado
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: "Filtrar por tipo de camión (autobomba, autoescala)"
+        explode: true
+        in: query
+        name: tipo
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Vehiculo"
+                type: array
+          description: Lista de vehículos obtenida correctamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Consultar disponibilidad de vehículos
+      tags:
+      - Bomberos - Flota
+      x-eov-operation-handler: controllers/BomberosFlotaController
+  /rutas:
+    get:
+      description: Calcula la ruta y el tiempo estimado desde el origen asignado hasta
+        el lugar del incidente.
+      operationId: rutasGET
+      parameters:
+      - description: Coordenadas de longitud GPS del origen
+        explode: true
+        in: query
+        name: origenLongitud
+        required: true
+        schema:
+          type: float
+        style: form
+      - description: Coordenadas de latitud GPS del origen
+        explode: true
+        in: query
+        name: origenLatitud
+        required: true
+        schema:
+          type: float
+        style: form
+      - description: Coordenadas de longitud GPS del incidente
+        explode: true
+        in: query
+        name: destinoLongitud
+        required: true
+        schema:
+          type: float
+        style: form
+      - description: Coordenadas de latitud GPS del incidente
+        explode: true
+        in: query
+        name: destinoLatitud
+        required: true
+        schema:
+          type: float
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ruta"
+          description: Ruta calculada con éxito
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Calcular ruta óptima
+      tags:
+      - Rutas
+      x-eov-operation-handler: controllers/RutasController
+  /incidentes/{id}/estado:
+    put:
+      description: Cambia el estado del aviso en el panel global del 112 (Por ejemplo
+        "Bomberos en camino").
+      operationId: incidentesIdEstadoPUT
+      parameters:
+      - description: ID del incidente
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstadoIncidente"
+        required: true
+      responses:
+        "200":
+          description: Estado actualizado correctamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Actualizar estado del incidente
+      tags:
+      - Incidentes
+      x-eov-operation-handler: controllers/IncidentesController
+  /despachos-bomberos:
+    post:
+      description: "Actúa como el servicio organizador. Inicia la solicitud, cálculo\
+        \ de ruta y envío de la orden al camión."
+      operationId: despachos_bomberosPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DespachoBomberos"
+        required: true
+      responses:
+        "201":
+          description: Orden de movilización creada y enviada con éxito
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Iniciar proceso de movilización completa
+      tags:
+      - Bomberos - Despachos
+      x-eov-operation-handler: controllers/BomberosDespachosController
+  /notificaciones/orden-movilizacion:
+    post:
+      description: Envía la hoja de ruta y los datos del siniestro al navegador GPS
+        del camión.
+      operationId: notificacionesOrdenMovilizacionPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_notificaciones_orden_movilizacion_post_request"
+        required: true
+      responses:
+        "200":
+          description: Orden enviada correctamente al camión
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Enviar orden de movilización
+      tags:
+      - Bomberos - Notificaciones
+      x-eov-operation-handler: controllers/BomberosNotificacionesController
+  /notificaciones/alerta-retraso:
+    post:
+      description: Envía un aviso al supervisor si el camión no confirma su salida
+        a tiempo.
+      operationId: notificacionesAlertaRetrasoPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_notificaciones_alerta_retraso_post_request"
+        required: true
+      responses:
+        "200":
+          description: Alerta emitida al supervisor
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Emitir alerta por retraso
+      tags:
+      - Bomberos - Notificaciones
+      x-eov-operation-handler: controllers/BomberosNotificacionesController
+  /paciente:
+    post:
+      description: Registra la información básica del paciente necesaria para los
+        procesos sanitarios.
+      operationId: pacientePOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Paciente"
+        required: true
+      responses:
+        "201":
+          description: Paciente registrado correctamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Guardar datos de un nuevo paciente
+      tags:
+      - Hospitales - Recursos
+      x-eov-operation-handler: controllers/HospitalesRecursosController
+  /recursos/{codigo}:
+    get:
+      description: Obtiene los recursos sanitarios necesarios para el código. Únicamente
+        incluye personal y camas.
+      operationId: recursosCodigoGET
+      parameters:
+      - description: Código de gravedad / triage del paciente
+        explode: false
+        in: path
+        name: codigo
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recursos"
+          description: Recursos necesarios para el código
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Obtener recursos sanitarios por código
+      tags:
+      - Hospitales - Recursos
+      x-eov-operation-handler: controllers/HospitalesRecursosController
+  /transporte:
+    get:
+      description: Dependiendo de la localización puede requerir transporte aéreo.
+        Dependiendo de la cama puede conocer el tipo de ambulancia.
+      operationId: transporteGET
+      parameters:
+      - explode: true
+        in: query
+        name: lat
+        required: true
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: lon
+        required: true
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: codigo
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transporte"
+          description: Opciones de transporte disponibles
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Determinar opciones de transporte
+      tags:
+      - Hospitales - Recursos
+      x-eov-operation-handler: controllers/HospitalesRecursosController
+  /hospital:
+    get:
+      description: Realiza una búsqueda en todos los hospitales para saber cuál está
+        disponible según requisitos.
+      operationId: hospitalGET
+      parameters:
+      - explode: true
+        in: query
+        name: sanitarios
+        required: false
+        schema:
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: transporte
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: camas
+        required: false
+        schema:
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: lat
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: lon
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: codigo
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/HospitalSearchResult"
+                type: array
+          description: Lista de hospitales que cumplen los criterios
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Buscar hospitales disponibles
+      tags:
+      - Hospitales - Recursos
+      x-eov-operation-handler: controllers/HospitalesRecursosController
+  /notificar/hospital/{id}:
+    post:
+      description: "Notifica al hospital del incidente, esperando una respuesta de\
+        \ ellos. Se pueden pasar parámetros de recursos y paciente."
+      operationId: notificarHospitalIdPOST
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - explode: true
+        in: query
+        name: sanitarios
+        required: false
+        schema:
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: transporte
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: camas
+        required: false
+        schema:
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: lat
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: lon
+        required: false
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: paciente
+        required: false
+        schema:
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_notificar_hospital__id__post_request"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificacionResponse"
+          description: Hospital notificado y respuesta recibida
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Notificar hospital del incidente
+      tags:
+      - Hospitales - Recursos
+      x-eov-operation-handler: controllers/HospitalesRecursosController
+  /registro/indicente:
+    post:
+      description: "Guarda un registro del incidente con todos sus datos, además de\
+        \ relacionarlo con el registro de la llamada o mensajes recibidos."
+      operationId: registroIndicentePOST
+      parameters:
+      - explode: true
+        in: query
+        name: paciente
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: recursos
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: sanitarios
+        required: false
+        schema:
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: hospital
+        required: false
+        schema:
+          type: integer
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistroIncidente"
+        required: true
+      responses:
+        "201":
+          description: Registro creado correctamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Guardar registro del incidente
+      tags:
+      - Incidentes
+      x-eov-operation-handler: controllers/IncidentesController
+  /gestiones-policiales:
+    post:
+      description: "Localiza la zona del incidente, selecciona el cuerpo competente\
+        \ y registra el despacho inicial."
+      operationId: gestiones_policialesPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentePolicialRequest"
+        required: true
+      responses:
+        "201":
+          description: Proceso policial iniciado y despacho creado correctamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Iniciar proceso integral de gestión policial
+      tags:
+      - Policía - Gestiones
+      x-eov-operation-handler: controllers/PolicaGestionesController
+  /jurisdicciones:
+    get:
+      description: Devuelve la jurisdicción policial aplicable para una latitud y
+        longitud concretas.
+      operationId: jurisdiccionesGET
+      parameters:
+      - explode: true
+        in: query
+        name: latitud
+        required: true
+        schema:
+          type: number
+        style: form
+      - explode: true
+        in: query
+        name: longitud
+        required: true
+        schema:
+          type: number
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JurisdiccionPolicial"
+          description: Jurisdicción encontrada
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_jurisdicciones_get_404_response"
+          description: Recurso no encontrado
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Obtener jurisdicción por coordenadas
+      tags:
+      - Policía - Jurisdicciones
+      x-eov-operation-handler: controllers/PolicaJurisdiccionesController
+  /recursos:
+    get:
+      description: Obtiene las unidades policiales disponibles y permite filtrar por
+        cuerpo.
+      operationId: recursosGET
+      parameters:
+      - description: "Filtrar por cuerpo (Local, Nacional, Guardia Civil)"
+        explode: true
+        in: query
+        name: cuerpo
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/RecursoPolicial"
+                type: array
+          description: Lista de recursos policiales disponibles
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Consultar disponibilidad de unidades policiales
+      tags:
+      - Policía - Recursos
+      x-eov-operation-handler: controllers/PolicaRecursosController
+  /despachos:
+    post:
+      description: Crea el registro oficial del despacho de una unidad para un incidente.
+      operationId: despachosPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DespachoPolicial"
+        required: true
+      responses:
+        "201":
+          description: Registro de despacho policial creado satisfactoriamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Registrar despacho policial
+      tags:
+      - Policía - Despachos
+      x-eov-operation-handler: controllers/PolicaDespachosController
+  /despachos/{id}:
+    put:
+      description: Cierra una asignación asociada a un incidente policial.
+      operationId: despachosIdPUT
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: Asignación policial cerrada correctamente
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Cerrar asignación policial
+      tags:
+      - Policía - Despachos
+      x-eov-operation-handler: controllers/PolicaDespachosController
+  /notificaciones:
+    post:
+      description: Envía un aviso electrónico para su procesamiento y entrega a la
+        patrulla asignada.
+      operationId: notificacionesPOST
+      responses:
+        "202":
+          description: Notificación enviada a la cola de procesamiento
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Enviar aviso electrónico a patrulla
+      tags:
+      - Policía - Notificaciones
+      x-eov-operation-handler: controllers/PolicaNotificacionesController
+  /hospitales/solicitarRecursos:
+    post:
+      description: Recolecta datos para decidir rapidamente que recursos y que    hospital
+        esta disponible
+      operationId: hospitalesSolicitarRecursosPOST
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_hospitales_solicitarRecursos_post_200_response"
+          description: "Peticion completada con exito, devuelve codigo de incidente"
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_jurisdicciones_get_404_response"
+          description: Recurso no encontrado
+      summary: Gestion de recursos hospitalarios
+      tags:
+      - Gestion de recursos hospitalarios
+      x-eov-operation-handler: controllers/GestionDeRecursosHospitalariosController
+components:
+  responses:
+    "400Error":
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+      description: Petición inválida o parámetros incorrectos
+    "404Error":
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/_jurisdicciones_get_404_response"
+      description: Recurso no encontrado
+  schemas:
+    Vehiculo:
+      example:
+        tipo: autobomba
+        estado: disponible
+        idVehiculo: 304
+        matricula: 1234-ABC
+      properties:
+        idVehiculo:
+          example: 304
+          type: integer
+        tipo:
+          example: autobomba
+          type: string
+        estado:
+          example: disponible
+          type: string
+        matricula:
+          example: 1234-ABC
+          type: string
+      type: object
+    Ruta:
+      example:
+        coordenadasNavegacion: coordenadasNavegacion
+        tiempoEstimadoMin: 6
+        distanciaKm: 0.8008281904610115
+      properties:
+        distanciaKm:
+          type: number
+        tiempoEstimadoMin:
+          type: integer
+        coordenadasNavegacion:
+          type: string
+      type: object
+    EstadoIncidente:
+      example:
+        estado: estado
+        horaActualizacion: 2000-01-23T04:56:07.000+00:00
+      properties:
+        estado:
+          type: string
+        horaActualizacion:
+          format: date-time
+          type: string
+      required:
+      - estado
+      type: object
+    DespachoBomberos:
+      example:
+        idIncidente: 0
+        gravedad: gravedad
+        vehiculosRequeridos: vehiculosRequeridos
+      properties:
+        idIncidente:
+          type: integer
+        gravedad:
+          type: string
+        vehiculosRequeridos:
+          type: string
+      required:
+      - gravedad
+      - idIncidente
+      type: object
+    Paciente:
+      example:
+        idPaciente: 0
+        fechaNacimiento: 2000-01-23
+        notas: notas
+        sexo: sexo
+        nombre: nombre
+        alergias: alergias
+      properties:
+        idPaciente:
+          type: integer
+        nombre:
+          type: string
+        fechaNacimiento:
+          format: date
+          type: string
+        sexo:
+          type: string
+        alergias:
+          type: string
+        notas:
+          type: string
+      required:
+      - fechaNacimiento
+      - nombre
+      type: object
+    Recursos:
+      example:
+        descripcion: descripcion
+        codigo: codigo
+        personalRequerido: personalRequerido
+        camasRequeridas: camasRequeridas
+      properties:
+        codigo:
+          type: string
+        personalRequerido:
+          type: string
+        camasRequeridas:
+          type: string
+        descripcion:
+          type: string
+      type: object
+    Transporte:
+      example:
+        tiempoEstimadoMin: 0
+        requiereAereo: true
+        tipoAmbulancia: tipoAmbulancia
+      properties:
+        requiereAereo:
+          type: boolean
+        tipoAmbulancia:
+          type: string
+        tiempoEstimadoMin:
+          type: integer
+      type: object
+    HospitalSearchResult:
+      example:
+        camasDisponibles: 1
+        id: 0
+        distanciaKm: 6.027456183070403
+        nombre: nombre
+        personalDisponible: 5
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        distanciaKm:
+          type: number
+        camasDisponibles:
+          type: integer
+        personalDisponible:
+          type: integer
+      type: object
+    NotificacionResponse:
+      example:
+        mensajeHospital: mensajeHospital
+        estado: estado
+        hospitalId: 0
+      properties:
+        hospitalId:
+          type: integer
+        estado:
+          type: string
+        mensajeHospital:
+          type: string
+      type: object
+    RegistroIncidente:
+      example:
+        idIncidente: 0
+        recursosAsignados:
+        - descripcion: descripcion
+          codigo: codigo
+          personalRequerido: personalRequerido
+          camasRequeridas: camasRequeridas
+        - descripcion: descripcion
+          codigo: codigo
+          personalRequerido: personalRequerido
+          camasRequeridas: camasRequeridas
+        paciente:
+          idPaciente: 0
+          fechaNacimiento: 2000-01-23
+          notas: notas
+          sexo: sexo
+          nombre: nombre
+          alergias: alergias
+        hospitalAsignado: 6
+        timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        idIncidente:
+          type: integer
+        paciente:
+          $ref: "#/components/schemas/Paciente"
+        recursosAsignados:
+          items:
+            $ref: "#/components/schemas/Recursos"
+          type: array
+        hospitalAsignado:
+          type: integer
+        timestamp:
+          format: date-time
+          type: string
+      required:
+      - idIncidente
+      type: object
+    IncidentePolicialRequest:
+      example:
+        gravedad: BAJA
+        tipoIncidente: tipoIncidente
+        latitud: 0.8008281904610115
+        longitud: 6.027456183070403
+      properties:
+        tipoIncidente:
+          type: string
+        gravedad:
+          enum:
+          - BAJA
+          - ALTA
+          type: string
+        latitud:
+          type: number
+        longitud:
+          type: number
+      required:
+      - gravedad
+      - latitud
+      - longitud
+      - tipoIncidente
+      type: object
+    JurisdiccionPolicial:
+      example:
+        tipoZona: URBANA
+        id: 0
+        nombre: nombre
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        tipoZona:
+          enum:
+          - URBANA
+          - RURAL
+          - GRAN_CIUDAD
+          type: string
+      type: object
+    RecursoPolicial:
+      example:
+        unidadId: unidadId
+        cuerpo: cuerpo
+        disponible: true
+      properties:
+        unidadId:
+          type: string
+        cuerpo:
+          type: string
+        disponible:
+          type: boolean
+      type: object
+    DespachoPolicial:
+      example:
+        unidadId: unidadId
+        incidenteId: 6
+        id: 0
+        horaDespacho: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        incidenteId:
+          type: integer
+        unidadId:
+          type: string
+        horaDespacho:
+          format: date-time
+          type: string
+      required:
+      - horaDespacho
+      - incidenteId
+      - unidadId
+      type: object
+    _parques__id__flota_get_400_response:
+      example:
+        message: Faltan parámetros obligatorios en la consulta
+      properties:
+        message:
+          example: Faltan parámetros obligatorios en la consulta
+          type: string
+      type: object
+    _notificaciones_orden_movilizacion_post_request:
+      properties:
+        idVehiculo:
+          type: integer
+        idIncidente:
+          type: integer
+      type: object
+    _notificaciones_alerta_retraso_post_request:
+      properties:
+        idIncidente:
+          type: integer
+        mensaje:
+          example: El camión asignado no ha confirmado salida en el tiempo límite.
+          type: string
+      type: object
+    _notificar_hospital__id__post_request:
+      properties:
+        mensaje:
+          type: string
+      type: object
+    _jurisdicciones_get_404_response:
+      example:
+        message: No se encontró información para los parámetros indicados
+      properties:
+        message:
+          example: No se encontró información para los parámetros indicados
+          type: string
+      type: object
+    _hospitales_solicitarRecursos_post_200_response:
+      example:
+        codigo: 123
+      properties:
+        codigo:
+          example: 123
+          type: integer
