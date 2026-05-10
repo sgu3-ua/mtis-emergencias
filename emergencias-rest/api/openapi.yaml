@@ -94,36 +94,36 @@ paths:
       operationId: rutasGET
       parameters:
       - description: Coordenadas de longitud GPS del origen
-        explode: true
         in: query
         name: origenLongitud
         required: true
         schema:
-          type: float
+          type: number
+          format: double
         style: form
       - description: Coordenadas de latitud GPS del origen
-        explode: true
         in: query
         name: origenLatitud
         required: true
         schema:
-          type: float
+          type: number
+          format: double
         style: form
       - description: Coordenadas de longitud GPS del incidente
-        explode: true
         in: query
         name: destinoLongitud
         required: true
         schema:
-          type: float
+          type: number
+          format: double
         style: form
       - description: Coordenadas de latitud GPS del incidente
-        explode: true
         in: query
         name: destinoLatitud
         required: true
         schema:
-          type: float
+          type: number
+          format: double
         style: form
       responses:
         "200":

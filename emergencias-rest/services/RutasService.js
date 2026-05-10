@@ -5,10 +5,10 @@ const Service = require('./Service');
 * Calcular ruta óptima
 * Calcula la ruta y el tiempo estimado desde el origen asignado hasta el lugar del incidente.
 *
-* origenLongitud Float Coordenadas de longitud GPS del origen
-* origenLatitud Float Coordenadas de latitud GPS del origen
-* destinoLongitud Float Coordenadas de longitud GPS del incidente
-* destinoLatitud Float Coordenadas de latitud GPS del incidente
+* origenLongitud Number Coordenadas de longitud GPS del origen
+* origenLatitud Number Coordenadas de latitud GPS del origen
+* destinoLongitud Number Coordenadas de longitud GPS del incidente
+* destinoLatitud Number Coordenadas de latitud GPS del incidente
 * returns Ruta
 * */
 const rutasGET = ({ origenLongitud, origenLatitud, destinoLongitud, destinoLatitud }) => new Promise(
