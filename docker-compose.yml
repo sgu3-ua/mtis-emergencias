@@ -1,0 +1,37 @@
+name: emergencias
+
+services:
+  rest-app:
+    build:
+      context: ./emergencias-rest
+      dockerfile: Dockerfile
+    container_name: emergencias-rest-api
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=emergencias
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mysql:5.7
+    container_name: emergencias-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=emergencias
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d:ro
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+volumes:
+  db_data:
