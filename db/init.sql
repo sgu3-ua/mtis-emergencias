@@ -120,6 +120,22 @@ create table if not exists registro_despliegue (
     FOREIGN KEY (unidad_polica_id) REFERENCES unidad_polica(id)
 );
 
+create table if not exists parque_bomberos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    direccion VARCHAR(255) NOT NULL,
+    capacidad_vehiculos INT NOT NULL
+);
+
+create table if not exists vehiculo_bomberos (
+    idVehiculo INT AUTO_INCREMENT PRIMARY KEY,
+    parque_id INT,
+    tipo VARCHAR(50) NOT NULL, -- Ejemplo: 'autobomba', 'autoescala'
+    estado VARCHAR(50) DEFAULT 'disponible', -- Ejemplo: 'disponible', 'en_ruta', 'mantenimiento'
+    matricula VARCHAR(20) NOT NULL,
+    FOREIGN KEY (parque_id) REFERENCES parque_bomberos(id)
+);
+
 -- Meter datos de prueba
 INSERT INTO incidente (
     requiere_bomberos,
@@ -402,3 +418,12 @@ insert into unidad_polica (
     'guardia civil',
     TRUE
 );
+
+insert into parque_bomberos (nombre, direccion, capacidad_vehiculos) 
+values ('Parque Central Alicante', 'Av. Locutor Vicente Hipólito', 10);
+
+insert into vehiculo_bomberos (parque_id, tipo, estado, matricula) 
+values 
+(1, 'autobomba', 'disponible', '1234-ABC'),
+(1, 'autoescala', 'mantenimiento', '9876-XYZ'),
+(1, 'autobomba', 'disponible', '4567-DEF');
