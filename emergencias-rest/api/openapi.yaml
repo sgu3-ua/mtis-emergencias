@@ -944,10 +944,8 @@ components:
         tipoIncidente:
           type: string
         gravedad:
-          enum:
-          - BAJA
-          - ALTA
           type: string
+          example: BAJA
         latitud:
           type: number
         longitud:
@@ -969,11 +967,8 @@ components:
         nombre:
           type: string
         tipoZona:
-          enum:
-          - URBANA
-          - RURAL
-          - GRAN_CIUDAD
           type: string
+          example: URBANA
       type: object
     RecursoPolicial:
       example:
