@@ -1,5 +1,7 @@
 -- Inicialización de la base de datos
-CREATE DATABASE IF NOT EXISTS sistema_emergencias;
+DROP DATABASE IF EXISTS sistema_emergencias;
+
+CREATE DATABASE sistema_emergencias;
 
 USE sistema_emergencias;
 
