@@ -284,7 +284,7 @@ insert into comisaria (
     correo_electronico
 ) values (
     'Comisaria de Alicante',
-    'Calle de la Policía, Alicante',
+    'Calle de la Policia, Alicante',
     50,
     'comisaria@alicante.es'
 );
@@ -326,7 +326,7 @@ insert into comisaria (
     correo_electronico
 ) values (
     'Comisaria de San Juan',
-    'Calle de la Policía, San Juan de Alicante',
+    'Calle de la Policia, San Juan de Alicante',
     20,
     'comisaria@sanjuan.es'
 );
