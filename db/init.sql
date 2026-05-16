@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS aviso (
     personas_heridas BOOLEAN DEFAULT FALSE,
     riesgo_seguridad BOOLEAN DEFAULT FALSE,
     alteracion_orden_publico BOOLEAN DEFAULT FALSE,
-    estado VARCHAR(30) DEFAULT 'PENDIENTE',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -88,7 +87,6 @@ VALUES (
     TRUE,
     FALSE,
     FALSE,
-    'PENDIENTE'
 );
 
 INSERT INTO aviso (
@@ -117,7 +115,6 @@ VALUES (
     TRUE,
     TRUE,
     FALSE,
-    'PENDIENTE'
 );
 
 INSERT INTO incidente_aviso (incidente_id, aviso_id)
