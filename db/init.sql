@@ -45,7 +45,8 @@ create table if not exists recursosHospital (
     id INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(255) NOT NULL,
     codigo INT NOT NULL,
-    camasRequeridas INT NOT NULL
+    camasRequeridas INT NOT NULL,
+    personalRequerido INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS paciente (
@@ -256,41 +257,49 @@ VALUES (
 insert into recursosHospital (
     descripcion,
     codigo,
-    camasRequeridas
+    camasRequeridas,
+    personalRequerido
 ) values (
     'Cama de hospitalizacion',
     100,
-    1
-);
-
-insert into recursosHospital (
-    descripcion,
-    codigo,
-    camasRequeridas
-) values (
-    'Unidad de cuidados intensivos',
-    101,
-    1
-);
-
-insert into recursosHospital (
-    descripcion,
-    codigo,
-    camasRequeridas
-) values (
-    'Equipo de cirugia',
-    102,
+    1,
     2
 );
 
 insert into recursosHospital (
     descripcion,
     codigo,
-    camasRequeridas
+    camasRequeridas,
+    personalRequerido
+) values (
+    'Unidad de cuidados intensivos',
+    101,
+    1,
+    3
+);
+
+insert into recursosHospital (
+    descripcion,
+    codigo,
+    camasRequeridas,
+    personalRequerido
+) values (
+    'Equipo de cirugia',
+    102,
+    2,
+    4
+);
+
+insert into recursosHospital (
+    descripcion,
+    codigo,
+    camasRequeridas,
+    personalRequerido
 ) values (
     'Equipo de reanimacion',
     103,
-    1
+    1,
+    2
 );
 
 insert into comisaria (

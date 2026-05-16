@@ -16,6 +16,19 @@ const Service = require('./Service');
 const hospitalGET = ({ sanitarios, transporte, camas, lat, lon, codigo }) => new Promise(
   async (resolve, reject) => {
     try {
+      if (sanitarios <= 0 || camas <= 0) {
+        reject(Service.rejectResponse(
+          'Los valores de sanitarios y camas no pueden ser negativos o cero',
+          400,
+        ));
+        return;
+      }
+      const query = 'SELECT id, nombre, direccion FROM hospitales WHERE personal_medico >= ? AND capacidad >= ? and camiones_ambulancia >= ? and helipuerto = ?'
+      const needsHelipuerto = (lat > 40.0 || lon > -3.0) || transporte.includes('aereo') || transporte.includes('heli') ? 1 : 0 ? 1 : 0;
+      transporte = transporte.toLowerCase();
+      const camiones = (transporte.includes('aereo') || transporte.includes('heli') ? 0 : 1 * camas);
+      const params = [sanitarios || 1, camas || 0, camiones, needsHelipuerto];
+
       resolve(Service.successResponse({
         sanitarios,
         transporte,
@@ -49,22 +62,80 @@ const hospitalGET = ({ sanitarios, transporte, camas, lat, lon, codigo }) => new
 const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, paciente, notificarHospitalIdPostRequest }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        id,
-        sanitarios,
-        transporte,
-        camas,
-        lat,
-        lon,
-        paciente,
-        notificarHospitalIdPostRequest,
-      }));
+    const queryHospital = 'SELECT nombre, email FROM hospitales WHERE id = ?';
+    let hospital;
+    try {
+      const result = await db.query(queryHospital, [id]);
+      if (result.length === 0) {
+        reject(Service.rejectResponse(
+          'No se encontró el hospital con el ID proporcionado',
+          404,
+        ));
+        return;
+      }
+      hospital = result[0];
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        'Error al consultar el hospital en la base de datos: ' + e.message,
+        500,
       ));
+      return;
     }
+
+    const fecha = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const asunto = `Notificación de incidente para hospital ${hospital.nombre}`;
+    const mensaje = `Notificación al hospital ${hospital.nombre} para incidente con paciente ${paciente || 'desconocido'}. Requiere ${sanitarios || 'desconocidos'} sanitarios, ${camas || 'desconocidas'} camas, transporte: ${transporte || 'desconocido'}. Latitud: ${lat || 'desconocida'}, Longitud: ${lon || 'desconocida'}. Detalles adicionales: ${notificarHospitalIdPostRequest ? JSON.stringify(notificarHospitalIdPostRequest) : 'ninguno'}.`;
+    const tipo = 'HOSPITAL';
+
+    //Primero lo insertamos en la base de datos
+    try {
+      const query = 'INSERT INTO notificacion (mensaje, fecha, tipo) VALUES (?,?,?)';
+      const params = [mensaje, fecha, tipo];
+      await db.query(query, params);
+    } catch (e) {
+      reject(Service.rejectResponse(
+        'Error al registrar la notificación en la base de datos: ' + e.message,
+        500,
+      ));
+      return;
+    }
+
+    //Le enviamos un correo al hospital
+    mailer.sendMail({
+      from: 'emergencias@mail.com',
+      to: hospital.email,
+      subject: asunto,
+      text: mensaje
+    });
+
+    //Simulamos que el hospital responde
+    const random = Math.random();
+    let mensajeHospital;
+    let subject;
+    let aceptaNotificacion = random < 0.5; // Simulamos que el hospital acepta la notificación con un 50% de probabilidad
+    if (aceptaNotificacion) {
+        // El hospital acepta la notificación
+        mensajeHospital = `El hospital ${hospital.nombre} ha aceptado la notificación y está preparando los recursos necesarios.`;
+        subject = `Respuesta del hospital ${hospital.nombre} para incidente`;
+    } else {
+        // El hospital rechaza la notificación
+        mensajeHospital = `El hospital ${hospital.nombre} ha rechazado la notificación debido a la falta de recursos disponibles.`;
+        subject = `Rechazo del hospital ${hospital.nombre} para incidente`;
+    }
+    mailer.sendMail({
+        from: hospital.email,
+        to: 'emergencias@mail.com',
+        subject: subject,
+        text: mensajeHospital
+    });
+    return resolve(Service.successResponse({"estado": true, "mensajeHospital": mensajeHospital, "hospitalID": id}));
+  
+  } catch (e) {
+    reject(Service.rejectResponse(
+      e.message || 'Invalid input',
+      e.status || 405,
+    ));
+  }
   },
 );
 /**
@@ -77,13 +148,21 @@ const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, 
 const pacientePOST = ({ paciente }) => new Promise(
   async (resolve, reject) => {
     try {
+      // Registramos el paciente en la base de datos y obtenemos su ID
+      const query = 'INSERT INTO pacientes (nombre, fecha_nacimiento, sexo, alergias) VALUES (?, ?, ?, ?)';
+      const params = [paciente.nombre, paciente.fecha_nacimiento, paciente.sexo, paciente.alergias];
+      const result = await db.query(query, params);
+
+      const pacienteId = result.id; // Suponiendo que el ID del paciente se devuelve en result.id
       resolve(Service.successResponse({
         paciente,
+        id: pacienteId,
+        code: 201
       }));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
-        e.status || 405,
+        e.status || 400,
       ));
     }
   },
@@ -98,8 +177,23 @@ const pacientePOST = ({ paciente }) => new Promise(
 const recursosCodigoGET = ({ codigo }) => new Promise(
   async (resolve, reject) => {
     try {
+      // Realizamos la consulta a la base de datos para obtener los recursos según el código
+     const query = 'SELECT descripcion, camasRequeridas, personalRequerido FROM recursosHospital WHERE codigo = ?';
+     const params = [codigo];
+     const result = await db.query(query, params);
+
+      if (result.length === 0) {
+        reject(Service.rejectResponse(
+          'No se encontraron recursos para el código proporcionado',
+          404,
+        ));
+        return;
+      }
       resolve(Service.successResponse({
         codigo,
+        descripcion: result[0].descripcion,
+        camasRequeridas: result[0].camasRequeridas,
+        personalRequerido: result[0].personalRequerido
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -121,10 +215,15 @@ const recursosCodigoGET = ({ codigo }) => new Promise(
 const transporteGET = ({ lat, lon, codigo }) => new Promise(
   async (resolve, reject) => {
     try {
+      const aereo = (lat > 40.0 || lon > -3.0);
+      const tipoAmbulancia = aereo ? 'Ambulancia aérea' : 'Ambulancia básica';
+      let random = Math.random();
+      const tiempoEstimado = aereo ? (random < 0.5 ? '30' : '45') : (random < 0.5 ? '15' : '25');
+
       resolve(Service.successResponse({
-        lat,
-        lon,
-        codigo,
+        tiempoEstimado: tiempoEstimado,
+        requiereAereo: aereo,
+        tipoAmbulancia: codigo%2 === 0 && !aereo ? 'Ambulancia de cuidados intensivos' : tipoAmbulancia,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
