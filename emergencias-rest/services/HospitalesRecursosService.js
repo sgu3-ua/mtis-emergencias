@@ -62,22 +62,80 @@ const hospitalGET = ({ sanitarios, transporte, camas, lat, lon, codigo }) => new
 const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, paciente, notificarHospitalIdPostRequest }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        id,
-        sanitarios,
-        transporte,
-        camas,
-        lat,
-        lon,
-        paciente,
-        notificarHospitalIdPostRequest,
-      }));
+    const queryHospital = 'SELECT nombre, email FROM hospitales WHERE id = ?';
+    let hospital;
+    try {
+      const result = await db.query(queryHospital, [id]);
+      if (result.length === 0) {
+        reject(Service.rejectResponse(
+          'No se encontró el hospital con el ID proporcionado',
+          404,
+        ));
+        return;
+      }
+      hospital = result[0];
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        'Error al consultar el hospital en la base de datos: ' + e.message,
+        500,
       ));
+      return;
     }
+
+    const fecha = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const asunto = `Notificación de incidente para hospital ${hospital.nombre}`;
+    const mensaje = `Notificación al hospital ${hospital.nombre} para incidente con paciente ${paciente || 'desconocido'}. Requiere ${sanitarios || 'desconocidos'} sanitarios, ${camas || 'desconocidas'} camas, transporte: ${transporte || 'desconocido'}. Latitud: ${lat || 'desconocida'}, Longitud: ${lon || 'desconocida'}. Detalles adicionales: ${notificarHospitalIdPostRequest ? JSON.stringify(notificarHospitalIdPostRequest) : 'ninguno'}.`;
+    const tipo = 'HOSPITAL';
+
+    //Primero lo insertamos en la base de datos
+    try {
+      const query = 'INSERT INTO notificacion (mensaje, fecha, tipo) VALUES (?,?,?)';
+      const params = [mensaje, fecha, tipo];
+      await db.query(query, params);
+    } catch (e) {
+      reject(Service.rejectResponse(
+        'Error al registrar la notificación en la base de datos: ' + e.message,
+        500,
+      ));
+      return;
+    }
+
+    //Le enviamos un correo al hospital
+    mailer.sendMail({
+      from: 'emergencias@mail.com',
+      to: hospital.email,
+      subject: asunto,
+      text: mensaje
+    });
+
+    //Simulamos que el hospital responde
+    const random = Math.random();
+    let mensajeHospital;
+    let subject;
+    let aceptaNotificacion = random < 0.5; // Simulamos que el hospital acepta la notificación con un 50% de probabilidad
+    if (aceptaNotificacion) {
+        // El hospital acepta la notificación
+        mensajeHospital = `El hospital ${hospital.nombre} ha aceptado la notificación y está preparando los recursos necesarios.`;
+        subject = `Respuesta del hospital ${hospital.nombre} para incidente`;
+    } else {
+        // El hospital rechaza la notificación
+        mensajeHospital = `El hospital ${hospital.nombre} ha rechazado la notificación debido a la falta de recursos disponibles.`;
+        subject = `Rechazo del hospital ${hospital.nombre} para incidente`;
+    }
+    mailer.sendMail({
+        from: hospital.email,
+        to: 'emergencias@mail.com',
+        subject: subject,
+        text: mensajeHospital
+    });
+    return resolve(Service.successResponse({"estado": true, "mensajeHospital": mensajeHospital, "hospitalID": id}));
+  
+  } catch (e) {
+    reject(Service.rejectResponse(
+      e.message || 'Invalid input',
+      e.status || 405,
+    ));
+  }
   },
 );
 /**
