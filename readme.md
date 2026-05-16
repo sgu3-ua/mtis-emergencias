@@ -10,13 +10,13 @@ Sara Vasquez Pons
 
 
 # Como ejecutar
-Uso básico (primera puesta en marcha):
+Uso básico (al realizar cambios o al ejecutar):
 
 ```
 docker-compose up --build -d
 ```
 
-Luego
+Luego si no se realizan cambios
 ```
 docker-compose up -d
 ```
@@ -26,6 +26,6 @@ Si necesita cargar su propia base de datos SQL, reemplace `db/init.sql` por su s
 
 Servicios incluidos:
 - **app**: la API Express (puerto `8080`).
-- **db**: base de datos Postgres (puerto `5432`).
+- **db**: base de datos Postgres (puerto `3306`).
 
 Variables relevantes (en `docker-compose.yml`): `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.

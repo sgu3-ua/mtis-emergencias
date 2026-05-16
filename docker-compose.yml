@@ -15,7 +15,7 @@ services:
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=root
-      - DB_NAME=emergencias
+      - DB_NAME=sistema_emergencias
     depends_on:
       - db
     restart: unless-stopped
@@ -25,7 +25,7 @@ services:
     container_name: emergencias-db
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=emergencias
+      - MYSQL_DATABASE=sistema_emergencias
     volumes:
       - ./db:/docker-entrypoint-initdb.d:ro
       - db_data:/var/lib/mysql
