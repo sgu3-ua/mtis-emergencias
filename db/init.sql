@@ -1,4 +1,4 @@
--- Inicialización de la base de datos para el servicio Postgres
+-- Inicialización de la base de datos
 CREATE DATABASE IF NOT EXISTS sistema_emergencias;
 
 USE sistema_emergencias;
@@ -64,7 +64,7 @@ INSERT INTO aviso (
     telefono,
     localizacion,
     descripcion,
-    num_afectados,
+    afectados,
     hay_fuego,
     hay_humo,
     hay_explosion,
@@ -93,7 +93,7 @@ INSERT INTO aviso (
     telefono,
     localizacion,
     descripcion,
-    num_afectados,
+    afectados,
     hay_fuego,
     hay_humo,
     hay_explosion,
