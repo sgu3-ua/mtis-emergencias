@@ -72,8 +72,7 @@ INSERT INTO aviso (
     personas_atrapadas,
     personas_heridas,
     riesgo_seguridad,
-    alteracion_orden_publico,
-    estado
+    alteracion_orden_publico
 )
 VALUES (
     '600123123',
@@ -86,7 +85,7 @@ VALUES (
     TRUE,
     TRUE,
     FALSE,
-    FALSE,
+    FALSE
 );
 
 INSERT INTO aviso (
@@ -100,8 +99,7 @@ INSERT INTO aviso (
     personas_atrapadas,
     personas_heridas,
     riesgo_seguridad,
-    alteracion_orden_publico,
-    estado
+    alteracion_orden_publico
 )
 VALUES (
     '611987654',
@@ -114,7 +112,7 @@ VALUES (
     FALSE,
     TRUE,
     TRUE,
-    FALSE,
+    FALSE
 );
 
 INSERT INTO incidente_aviso (incidente_id, aviso_id)
