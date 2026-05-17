@@ -10,9 +10,10 @@ const db = require('../repository/db');
 * estadoIncidente EstadoIncidente 
 * no response value expected for this operation
 * */
-const incidentesIdEstadoPUT = ({ id, estadoIncidente }) => new Promise(
+const incidentesIdEstadoPUT = ({ id, body }) => new Promise(
   async (resolve, reject) => {
     try {
+      const estadoIncidente = body;
       // Validaciones básicas
       if (typeof id !== 'number' || Number.isNaN(id)) {
         reject(Service.rejectResponse('Petición inválida o parámetros incorrectos', 400));
@@ -71,59 +72,10 @@ const incidentesIdEstadoPUT = ({ id, estadoIncidente }) => new Promise(
 * hospital Integer  (optional)
 * no response value expected for this operation
 * */
-/*
-create table if not exists incidente_hospital (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    incidente_id INT,
-    hospital_id INT,
-    paciente_id INT,
-
-    FOREIGN KEY (incidente_id) REFERENCES incidente(id),
-    FOREIGN KEY (hospital_id) REFERENCES hospital(id)
-);
-
-create table if not exists incidente_hospital_recursosHospital (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    incidente_hospital_id INT,
-    recurso_id INT,
-
-    FOREIGN KEY (incidente_hospital_id) REFERENCES incidente_hospital(id),
-    FOREIGN KEY (recurso_id) REFERENCES recursosHospital(id)
-);
-*/
-/*
-  registroIncidente: {
-  "idIncidente": 0,
-  "recursosAsignados": [
-    {
-      "descripcion": "descripcion",
-      "codigo": "codigo",
-      "personalRequerido": "personalRequerido",
-      "camasRequeridas": "camasRequeridas"
-    },
-    {
-      "descripcion": "descripcion",
-      "codigo": "codigo",
-      "personalRequerido": "personalRequerido",
-      "camasRequeridas": "camasRequeridas"
-    }
-  ],
-  "paciente": {
-    "idPaciente": 0,
-    "fechaNacimiento": "2000-01-23T00:00:00.000Z",
-    "notas": "notas",
-    "sexo": "sexo",
-    "nombre": "nombre",
-    "alergias": "alergias"
-  },
-  "hospitalAsignado": 6,
-  "timestamp": "2000-01-23T04:56:07.000Z"
-}
-*/
-const registroIndicentePOST = ({ registroIncidente, paciente, recursos, sanitarios, hospital }) => new Promise(
+const registroIndicentePOST = ({ body, paciente, recursos, sanitarios, hospital }) => new Promise(
   async (resolve, reject) => {
     try {
-
+      const registroIncidente = body;
       if (!registroIncidente || typeof registroIncidente !== 'object') {
         reject(Service.rejectResponse('Petición inválida o parámetros incorrectos', 400));
         return;
@@ -148,13 +100,25 @@ const registroIndicentePOST = ({ registroIncidente, paciente, recursos, sanitari
       if (pacienteObj) {
         if (typeof pacienteObj.idPaciente === 'number' && pacienteObj.idPaciente > 0) {
           pacienteId = pacienteObj.idPaciente;
+          // Verificar que el paciente existe
+          const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+          if (!pacienteExists || pacienteExists.length === 0) {
+            reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+            return;
+          }
         } else if (typeof pacienteObj.id === 'number' && pacienteObj.id > 0) {
           pacienteId = pacienteObj.id;
+          // Verificar que el paciente existe          
+          const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+          if (!pacienteExists || pacienteExists.length === 0) {
+            reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+            return;
+          }
         } else {
-          const nombre = pacienteObj.nombre || null;
+          const nombre = pacienteObj.nombre;
           const fechaNacimiento = pacienteObj.fechaNacimiento ? new Date(pacienteObj.fechaNacimiento).toISOString().slice(0, 10) : null;
-          const sexo = pacienteObj.sexo || null;
-          const alergias = pacienteObj.alergias || null;
+          const sexo = pacienteObj.sexo;
+          const alergias = pacienteObj.alergias;
 
           const insertPaciente = await db.query('INSERT INTO paciente (nombre, fecha_nacimiento, sexo, alergias) VALUES (?, ?, ?, ?)', [nombre, fechaNacimiento, sexo, alergias]);
           pacienteId = insertPaciente.insertId || insertPaciente.id || null;

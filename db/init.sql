@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS aviso (
     telefono VARCHAR(20) NOT NULL,
     localizacion VARCHAR(255) NOT NULL,
     descripcion TEXT NOT NULL,
-    afectados INT DEFAULT 0,
+    afectados INT DEFAULT NULL,
     hay_fuego BOOLEAN DEFAULT FALSE,
     hay_humo BOOLEAN DEFAULT FALSE,
     hay_explosion BOOLEAN DEFAULT FALSE,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS aviso (
     personas_heridas BOOLEAN DEFAULT FALSE,
     riesgo_seguridad BOOLEAN DEFAULT FALSE,
     alteracion_orden_publico BOOLEAN DEFAULT FALSE,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    hora_llamada TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS incidente (
@@ -29,8 +29,7 @@ CREATE TABLE IF NOT EXISTS incidente (
     urgencia VARCHAR(20) NOT NULL,
     descripcion TEXT NOT NULL,
     localizacion VARCHAR(255) NOT NULL,
-    estado VARCHAR(30) DEFAULT 'ACTIVO',
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    estado VARCHAR(30) DEFAULT 'ACTIVO' -- 'ACTIVO', 'RESUELTO'
 );
 
 CREATE TABLE IF NOT EXISTS incidente_aviso (
@@ -104,7 +103,7 @@ create table if not exists comisaria (
     correo_electronico VARCHAR(255) NOT NULL
 );
 
-create table if not exists unidad_polica (
+create table if not exists unidad_policia (
     id INT AUTO_INCREMENT PRIMARY KEY,
     comisaria_id INT,
     cuerpo VARCHAR(50) NOT NULL, -- Ejemplo: 'local', 'nacional', 'guardia civil'
@@ -115,10 +114,10 @@ create table if not exists unidad_polica (
 create table if not exists registro_despliegue (
     id INT AUTO_INCREMENT PRIMARY KEY,
     incidente_id INT,
-    unidad_polica_id INT,
+    unidad_policia_id INT,
     hora_despacho TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (incidente_id) REFERENCES incidente(id),
-    FOREIGN KEY (unidad_polica_id) REFERENCES unidad_polica(id)
+    FOREIGN KEY (unidad_policia_id) REFERENCES unidad_policia(id)
 );
 
 create table if not exists parque_bomberos (
@@ -254,6 +253,24 @@ VALUES (
     3
 );
 
+insert into hospital (
+    nombre,
+    direccion,
+    capacidad,
+    camiones_ambulancia,
+    correo_electronico,
+    helipuerto,
+    personal_medico
+) values (
+    'Hospital de Elche',
+    'Calle de la Salud, Elche',
+    50,
+    2,
+    'hospital@elche.es',
+    TRUE,
+    10
+);
+
 insert into recursosHospital (
     descripcion,
     codigo,
@@ -314,7 +331,7 @@ insert into comisaria (
     'comisaria@alicante.es'
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -324,7 +341,7 @@ insert into unidad_polica (
     TRUE
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -334,7 +351,7 @@ insert into unidad_polica (
     TRUE
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -356,7 +373,7 @@ insert into comisaria (
     'comisaria@sanjuan.es'
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -366,7 +383,7 @@ insert into unidad_polica (
     TRUE
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -376,7 +393,7 @@ insert into unidad_polica (
     TRUE
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -398,7 +415,7 @@ insert into comisaria (
     'comisaria@elche.es'
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -408,7 +425,7 @@ insert into unidad_polica (
     TRUE
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
@@ -418,7 +435,7 @@ insert into unidad_polica (
     TRUE
 );
 
-insert into unidad_polica (
+insert into unidad_policia (
     comisaria_id,
     cuerpo,
     disponibilidad
