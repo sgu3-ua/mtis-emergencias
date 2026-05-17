@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8db61074-2af9-422d-9c2a-b83316642318">
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="02dfd625-1145-485b-bade-928cbdd684f9" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="sistema_emergencias" />
+	</db:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="153f09a4-a8b0-4dcc-b05d-22544b8cd8e1" basePath="/api/v1" >
+		<http:request-connection host="localhost" port="8080" />
+	</http:request-config>
+	<flow name="emergenciashospitalFlow" doc:id="4c0c104c-4c2d-49c4-8364-7d1e8c931a73" >
+		<http:listener doc:name="Listener" doc:id="3b791114-f0cb-4a9e-b049-3de2536c5bf1" config-ref="HTTP_Listener_config" path="/emergenciaHospital">
+			<http:response statusCode="#[vars.statusCode]" />
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="c50afa5c-8ca4-4a0e-b013-64e7a54d7e3c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+// Normalizamos el campo "paciente"
+var rawPaciente = payload.paciente
+var arr = if (rawPaciente is Array) rawPaciente else [rawPaciente]
+
+// Validación de cada paciente
+fun validatePaciente(p) =
+    (p.fechaNacimiento is String) and
+    (p.notas is String) and
+    (p.sexo is String) and
+    (p.nombre is String) and
+    (p.alergias is String)
+
+---
+{
+    valido: isEmpty(arr filter (item) -> !validatePaciente(item)),
+    elementosInvalidos: arr filter (item) -> !validatePaciente(item),
+    dataNormalizada: {
+        paciente: arr,
+        lat: payload.lat,
+        lon: payload.lon,
+        incidenteid: payload.incidenteid
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="ecddfc96-abf2-4262-b171-38325aa0b434" message="#[payload]"/>
+		<choice doc:name="Choice" doc:id="1a2b63ff-1a31-450a-8543-4d8c2cd8e6ac" >
+			<when expression="#[payload.valido == false]">
+				<ee:transform doc:name="Transform Message" doc:id="23717089-f5bb-4244-9197-b70997d22015">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"error" : "Datos no validos",
+	"detalles" : payload.elementosInvalidos
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="400" doc:name="Set Variable" doc:id="2d947106-47bf-4cee-977b-e70539d2cb6d" variableName="statusCode"/>
+				<logger level="INFO" doc:name="Invalido" doc:id="4c17603d-2a67-4ed3-bc3d-90ba95d5ebf1" message="#[payload]"/>
+			</when>
+			<otherwise >
+				<set-variable value="#[payload.dataNormalizada.lat]" doc:name="Set Variable lat" doc:id="dbab58cb-49d1-4460-8e11-b822d9e53676" variableName="lat"/>
+				<set-variable value="#[payload.dataNormalizada.lon]" doc:name="Set Variable lon" doc:id="ec78a234-e5da-4339-9e0d-d549d01d99c9" variableName="lon"/>
+				<set-variable value="#[payload.dataNormalizada.incidenteid]" doc:name="Set Variable IdIncidente" doc:id="7405b836-9f91-4104-bdf4-868b6b46dd69" variableName="incidenteid"/>
+				<set-variable value="#[sizeOf(payload.dataNormalizada.paciente)]" doc:name="Set Variable PacientesTotales" doc:id="6d34d753-a948-4a84-ad10-4283f8b2ad48" variableName="pacientesTotales"/>
+				<set-variable value="#[payload.dataNormalizada.paciente]" doc:name="Set Variable pacientes" doc:id="eafc17e9-3a81-461a-ab0b-9dbead348187" variableName="pacientes"/>
+				<set-variable value="#[0]" doc:name="Set Variable sanitarios" doc:id="64b7a4cb-8b70-4259-8d70-4a8497b3fc21" variableName="sanitarios"/>
+				<set-variable value="#[0]" doc:name="Set Variable camas" doc:id="3b2bfc44-fff0-4db3-b1cf-1f7ca4151d31" variableName="camas"/>
+				<set-variable value="#[false]" doc:name="Set Variable aereo" doc:id="63addcfa-8f19-4cdb-807c-1aa5a5fce957" variableName="aereo"/>
+				<logger level="INFO" doc:name="Mensaje desde 2 parte" doc:id="fc2875c0-d79f-4600-8446-88767c7d1d4a" message="#[payload]" />
+				<db:select doc:name="Select" doc:id="cf015feb-d8e1-45bc-a874-8832740c67ae" config-ref="Database_Config">
+					<db:sql ><![CDATA[select COUNT(*) as existe FROM incidente WHERE id=:idincidente;]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	idincidente : payload.dataNormalizada.incidenteid
+}]]]></db:input-parameters>
+				</db:select>
+				<choice doc:name="Choice" doc:id="e47afd75-43b7-41fe-9dce-ebd05ceeff9c" >
+					<when expression="#[payload[0].existe &lt;= 0]">
+						<logger level="INFO" doc:name="No existe" doc:id="b2acf205-8e34-446e-9f10-ca5e96bcb27c" message="#[payload]"/>
+						<ee:transform doc:name="Transform Message" doc:id="40a84bda-1f2d-442a-99d8-590fb3b9ae2f" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/jsom
+---
+{
+	"error" : "No existe el incidente"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<set-variable value="400" doc:name="Set Variable" doc:id="5d1dbdff-de5d-41e7-9497-1b61596ddb59" variableName="statusCode" />
+					</when>
+					<otherwise >
+						<foreach doc:name="For Each" doc:id="e21b645e-a0f3-4dcc-91de-c06631f45ecf" collection="#[vars.pacientes]">
+							<logger level="INFO" doc:name="Logger" doc:id="89eda83b-5113-44ac-a06a-894cbccd0ccc" message="#[payload]"/>
+							<http:request method="POST" doc:name="Crear paciente" doc:id="93f1bc94-dc84-42ce-b5b9-dd479a40c39e" config-ref="HTTP_Request_configuration" path="/paciente" />
+							<logger level="INFO" doc:name="Respueta insertar paciente" doc:id="29496fcf-bedb-4b8c-bd28-28cabf725b4e" message="#[payload]" />
+							<choice doc:name="Choice" doc:id="b3fe5262-8b5e-487c-9dd2-c8cc1b5b37a5">
+							<when expression="#[attributes.statusCode != 201]">
+								<logger level="INFO" doc:name="Error al crear paciente" doc:id="1a2fab2e-afff-4a3e-acbe-69ebcb5a51aa" message="#[payload]" />
+								<raise-error doc:name="Raise error" doc:id="e6c380e6-5cca-4052-ad3e-4e51d024a614" type="BUSINESS:NOT_FOUND" description="Error al guardar datos del paciente" />
+							</when>
+								<otherwise>
+									<set-variable value="#[payload.paciente]" doc:name="Guardar paciente" doc:id="08daef40-b4a1-4253-9ad6-53e56716ee3d" variableName="paciente" />
+									<until-successful maxRetries="2" doc:name="Until Successful" doc:id="a8824dc4-e0fb-4b13-9a09-887d2379b9ed" millisBetweenRetries="100">
+										<http:request method="POST" doc:name="Solicitar recursos" doc:id="33567a3e-c39f-4343-b4bf-3713247c72e1" config-ref="HTTP_Request_configuration" path="/hospitales/solicitarRecursos" />
+										<logger level="INFO" doc:name="Repuesta preguntar codigo" doc:id="9b041cef-7ba0-48c7-b666-6b836729b4a6" message="#[payload]" />
+										<choice doc:name="Choice" doc:id="e5e08c3b-a606-484a-b52f-8a2069e5b62b">
+											<when expression="#[attributes.statusCode != 200]">
+												<logger level="INFO" doc:name="Logger" doc:id="bda8806a-575a-4dc1-b85f-f3a9b324dda9" message="#[attributes]"/>
+												<raise-error doc:name="Raise error" doc:id="b23286cc-76b3-4f79-bbce-e555a77e988b" type="BUSINESS:NOT_FOUND" description="No se ha podido obtener un codigo de recursos" />
+											</when>
+											<otherwise>
+												<set-variable value="#[payload.codigo]" doc:name="Respuesta codigo" doc:id="de98eee5-c30d-41e7-92ea-9d58140920b8" variableName="codigo"/>
+												<http:request method="GET" doc:name="Informacion recursos" doc:id="4ca147a8-f8d0-46dc-b59b-b959814871c3" path='#["/recursos/" ++ (payload.codigo as String)]' config-ref="HTTP_Request_configuration">
+												</http:request>
+												<set-variable value="#[(payload.camasRequeridas as Number)]" doc:name="Actualizar camas" doc:id="c652c7ef-7fe8-404d-94a6-f21809e1483c" variableName="camas" mimeType="application/json"/>
+												<set-variable value="#[(payload.personalRequerido as Number)]" doc:name="Actualizar sanitarios" doc:id="bca3938e-14b6-4d4f-b3f5-93922a284c9c" variableName="sanitarios" mimeType="application/json"/>
+												<set-variable value="#[payload]" doc:name="Respuesta codigo" doc:id="c20d3ca4-6b0e-42ce-857b-75e0a76e6504" variableName="respuestaCodigo"/>
+												<logger level="INFO" doc:name="Respuesta preguntar recursos codigo" doc:id="06e27b2b-27b5-43f8-b558-5ccb63b5f938" message="#[payload]" />
+											</otherwise>
+										</choice>
+										<http:request method="GET" doc:name="Obtener transporte" doc:id="e130f48e-3881-43a8-907e-bcc88a801071" config-ref="HTTP_Request_configuration" path="/transporte">
+							<http:query-params><![CDATA[#[output application/java
+---
+{
+	"lat" : vars.lat,
+	"lon" : vars.lon,
+	"codigo" : vars.codigo
+}]]]></http:query-params>
+						</http:request>
+										<logger level="INFO" doc:name="Transporte?" doc:id="4ea69e78-5b29-47a0-ad20-e56a4571df2c" message="#[payload]" />
+										<set-variable value="#[(payload.requiereAereo) as Boolean]" doc:name="Requiere aereo" doc:id="7720a254-dbd9-492d-b1b1-e6fbe9d12c1d" variableName="aereo" />
+										<http:request method="GET" doc:name="Obtener hospitales" doc:id="5a992f35-ed26-415b-a076-371fae243a43" config-ref="HTTP_Request_configuration" path="/hospital">
+							<http:query-params><![CDATA[#[output application/java
+---
+{
+	"sanitarios" : vars.sanitarios,
+	"transporte" : if (vars.aereo) "helicoptero" else "ambulancia",
+	"camas" : vars.camas,
+	"lat" : vars.lat,
+	"lon" : vars.lon,
+	"codigo" : vars.codigo
+}]]]></http:query-params>
+						</http:request>
+										<logger level="INFO" doc:name="Hospitales disponibles" doc:id="4593f417-b5f6-46cb-b05f-51baa7ba14a5" message="#[payload]" />
+										<set-variable value="#[(false as Boolean)]" doc:name="Set Variable" doc:id="4510070c-7f4f-4c45-a1a9-415946077de7" variableName="encontrado"/>
+										<foreach doc:name="For Each" doc:id="e438862d-56a8-4cda-99da-f969fbd94dd6" collection="#[payload]">
+											<choice doc:name="Choice" doc:id="ab0fbfbb-e39d-4c81-9452-bc2343ff0eb2" >
+												<when expression="#[vars.encontrado]">
+													<logger level="INFO" doc:name="Logger 1" doc:id="b83480ca-36f8-4d91-8cb5-b1087c641636" message="#[payload]"/>
+												</when>
+												<otherwise >
+													<set-payload value='#[{&#10;	"mensaje" : write(vars.paciente, "application/json"),&#10;	"sanitarios" : vars.sanitarios,&#10;	"paciente" : (vars.paciente.nombre default "Desconocido"),&#10;	"lat" : vars.lat,&#10;	"lon" : vars.lon,&#10;	"transporte" : if (vars.aereo) "helicoptero" else "ambulancia",&#10;	"camas" : vars.camas,&#10;	"id" : payload.id&#10;}]' doc:name="Set Payload" doc:id="4a80026f-c33c-4c80-9adc-15f0bbf5cadf" />
+													<logger level="INFO" doc:name="Contenido" doc:id="250b883e-d626-492e-889f-c550a8db6e65" message="#[payload]"/>
+													<http:request method="POST" doc:name="Notificar hospital" doc:id="50138ce3-d430-44a9-8241-e768984a82c0" config-ref="HTTP_Request_configuration" path='#["/notificar/hospital/" ++ (payload.id as String)]' outputMimeType="application/json">
+							</http:request>
+													<logger level="INFO" doc:name="Respuesta hospital" doc:id="ab505627-5f49-43c3-bd18-ee00ebc9baea" message="#[payload]" />
+													<choice doc:name="Choice" doc:id="d1b198b9-e138-47d7-b3e6-17ecb59dbb4c">
+												<when expression="#[!(payload.estado as Boolean)]">
+															<logger level="INFO" doc:name="Logger 2" doc:id="70d4fef1-8149-4260-b5d2-57dce5064f37" message="#[payload]"/>
+														</when>
+														<otherwise>
+													<set-variable value="#[payload.hospitalId]" doc:name="Set Variable hospitalid" doc:id="7bd4a31f-9f1d-4642-90dc-edfb87c39c81" variableName="hospitalid" />
+													<set-variable value="#[(true as Boolean)]" doc:name="Set Variable" doc:id="d0d59de9-5959-40ae-abe2-85aa8837811e" variableName="encontrado"/>
+															<http:request method="GET" doc:name="Calcula ruta" doc:id="ad976558-a83f-407b-a5cb-a4ad1c11182f" config-ref="HTTP_Request_configuration" path="/rutas">
+														<http:query-params><![CDATA[#[output application/java
+---
+{
+	destintoLatitud : ((now() as Number) mod 100) + 1,
+	origenLongitud : vars.lon,
+	origenLatitud : vars.lat,
+	destinoLongitud : ((now() as Number) mod 100) + 1
+}]]]></http:query-params>
+													</http:request>
+													<logger level="INFO" doc:name="Ruta calculada" doc:id="6c131cd9-11ff-4c4e-bdfb-1d6d8c1dc958" message="#[payload]" />
+													<http:request method="POST" doc:name="Registro incidente" doc:id="4d5b882c-ee8d-4858-b9cc-42f3b53d91f2" config-ref="HTTP_Request_configuration" path="/registro/incidente">
+											<http:body><![CDATA[#[{
+  "idIncidente": vars.incidenteid,
+  "recursosAsignados": [
+    {
+      "descripcion": "Nada",
+      "codigo": vars.codigo,
+      "personalRequerido": 1,
+      "camasRequeridas": 1
+    }
+  ],
+  "paciente": vars.paciente,
+  "hospitalAsignado": vars.hospitalid,
+  "timestamp": (now() as String { format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" })
+}]]]></http:body>
+														<http:query-params><![CDATA[#[output application/java
+---
+{
+	"sanitarios" : vars.sanitarios,
+	"paciente" : vars.paciente.idPaciente,
+	"hospital" : vars.hospitalid
+}]]]></http:query-params>
+										</http:request>
+												</otherwise>
+											</choice>
+												</otherwise>
+											</choice>
+										</foreach>
+									</until-successful>
+							</otherwise>
+						</choice>
+						</foreach>
+					</otherwise>
+				</choice>
+				<ee:transform doc:name="Transform Message" doc:id="37d3e42a-e318-4df4-9b30-6e5f74d22cc8" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"estado" : true
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="200" doc:name="Set Variable" doc:id="223b3ac3-b0dc-40e8-9966-d232e250236d" variableName="statusCode"/>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="dc5c8ff1-2f4a-4ded-9a44-f72477e1b2ca" >
+				<ee:transform doc:name="Transform Message" doc:id="bee4cefc-acfa-435e-b20f-9226b26c3375" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"content" : payload,
+	"error" : "Ha ocurrido un error durante el flujo",
+	"errorMessage" : error.errorMessage,
+	"errorType" : error.errorType,
+	"errorDescription" : error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="400" doc:name="Set Variable" doc:id="fe407c79-7a66-47c2-a860-e33ac440beb4" variableName="statusCode"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>
