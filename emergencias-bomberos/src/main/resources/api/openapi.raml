@@ -1,0 +1,405 @@
+#%RAML 1.0
+title: API Sistema Integral de Emergencias 112
+version: 1.0.0
+description: API REST para la gestión integral de emergencias. Incluye consulta de disponibilidad, asignación de rutas y despacho de bomberos, gestión de recursos sanitarios y hospitalarios para incidentes (personal, camas y transporte), y coordinación de recursos policiales para jurisdicción y despacho.
+baseUri: http://localhost:8080/api/v1
+
+types:
+  Vehiculo:
+    type: object
+    properties:
+      idVehiculo?: integer
+      tipo?: string
+      estado?: string
+      matricula?: string
+  Ruta:
+    type: object
+    properties:
+      distanciaKm?: number
+      tiempoEstimadoMin?: integer
+      coordenadasNavegacion?: string
+  EstadoIncidente:
+    type: object
+    properties:
+      estado: string
+      horaActualizacion?: string
+  DespachoBomberos:
+    type: object
+    properties:
+      idIncidente: integer
+      gravedad: string
+      vehiculosRequeridos?: string
+  Paciente:
+    type: object
+    properties:
+      idPaciente?: integer
+      nombre: string
+      fechaNacimiento: string
+      sexo?: string
+      alergias?: string
+      notas?: string
+  Recursos:
+    type: object
+    properties:
+      codigo?: string
+      personalRequerido?: string
+      camasRequeridas?: string
+      descripcion?: string
+  Transporte:
+    type: object
+    properties:
+      requiereAereo?: boolean
+      tipoAmbulancia?: string
+      tiempoEstimadoMin?: integer
+  HospitalSearchResult:
+    type: object
+    properties:
+      id?: integer
+      nombre?: string
+      distanciaKm?: number
+      camasDisponibles?: integer
+      personalDisponible?: integer
+  NotificacionResponse:
+    type: object
+    properties:
+      hospitalId?: integer
+      estado?: string
+      mensajeHospital?: string
+  RegistroIncidente:
+    type: object
+    properties:
+      idIncidente: integer
+      paciente?: Paciente
+      recursosAsignados?: Recursos[]
+      hospitalAsignado?: integer
+      timestamp?: string
+  IncidentePolicialRequest:
+    type: object
+    properties:
+      tipoIncidente: string
+      gravedad: string
+      latitud: number
+      longitud: number
+  JurisdiccionPolicial:
+    type: object
+    properties:
+      id?: integer
+      nombre?: string
+      tipoZona?: string
+  RecursoPolicial:
+    type: object
+    properties:
+      unidadId?: string
+      cuerpo?: string
+      disponible?: boolean
+  DespachoPolicial:
+    type: object
+    properties:
+      id?: integer
+      incidenteId: integer
+      unidadId: string
+      horaDespacho: string
+  ErrorResponse:
+    type: object
+    properties:
+      message?: string
+  NotificacionesOrdenMovilizacionPostRequest:
+    type: object
+    properties:
+      idVehiculo?: integer
+      idIncidente?: integer
+  NotificacionesAlertaRetrasoPostRequest:
+    type: object
+    properties:
+      idIncidente?: integer
+      mensaje?: string
+  NotificarHospitalIdPostRequest:
+    type: object
+    properties:
+      mensaje?: string
+
+/parques:
+  /{id}:
+    /flota:
+      get:
+        description: Consultar disponibilidad de vehículos
+        queryParameters:
+          estado?: string
+          tipo?: string
+        responses:
+          200:
+            body:
+              application/json:
+                type: Vehiculo[]
+          400:
+            body:
+              application/json:
+                type: ErrorResponse
+/rutas:
+  get:
+    description: Calcular ruta óptima
+    queryParameters:
+      origenLongitud: number
+      origenLatitud: number
+      destinoLongitud: number
+      destinoLatitud: number
+    responses:
+      200:
+        body:
+          application/json:
+            type: Ruta
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+/incidentes:
+  /{id}:
+    /estado:
+      put:
+        description: Actualizar estado del incidente
+        body:
+          application/json:
+            type: EstadoIncidente
+        responses:
+          200:
+            description: Estado actualizado correctamente
+          400:
+            body:
+              application/json:
+                type: ErrorResponse
+/despachos-bomberos:
+  post:
+    description: Iniciar proceso de movilización completa
+    body:
+      application/json:
+        type: DespachoBomberos
+    responses:
+      201:
+        description: Orden de movilización creada y enviada con éxito
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+/notificaciones:
+  post:
+    description: Enviar aviso electrónico a patrulla
+    responses:
+      202:
+        description: Notificación enviada a la cola de procesamiento
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+  /orden-movilizacion:
+    post:
+      description: Enviar orden de movilización
+      body:
+        application/json:
+          type: NotificacionesOrdenMovilizacionPostRequest
+      responses:
+        200:
+          description: Orden enviada correctamente al camión
+        400:
+          body:
+            application/json:
+              type: ErrorResponse
+  /alerta-retraso:
+    post:
+      description: Emitir alerta por retraso
+      body:
+        application/json:
+          type: NotificacionesAlertaRetrasoPostRequest
+      responses:
+        200:
+          description: Alerta emitida al supervisor
+        400:
+          body:
+            application/json:
+              type: ErrorResponse
+/paciente:
+  post:
+    description: Guardar datos de un nuevo paciente
+    body:
+      application/json:
+        type: Paciente
+    responses:
+      201:
+        description: Paciente registrado correctamente
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+/recursos:
+  get:
+    description: Consultar disponibilidad de unidades policiales
+    queryParameters:
+      cuerpo?: string
+    responses:
+      200:
+        body:
+          application/json:
+            type: RecursoPolicial[]
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+  /{codigo}:
+    get:
+      description: Obtener recursos sanitarios por código
+      responses:
+        200:
+          body:
+            application/json:
+              type: Recursos
+        400:
+          body:
+            application/json:
+              type: ErrorResponse
+/transporte:
+  get:
+    description: Determinar opciones de transporte
+    queryParameters:
+      lat: number
+      lon: number
+      codigo: string
+    responses:
+      200:
+        body:
+          application/json:
+            type: Transporte
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+/hospital:
+  get:
+    description: Buscar hospitales disponibles
+    queryParameters:
+      sanitarios?: integer
+      transporte?: string
+      camas?: integer
+      lat?: number
+      lon?: number
+      codigo?: string
+    responses:
+      200:
+        body:
+          application/json:
+            type: HospitalSearchResult[]
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+/notificar:
+  /hospital:
+    /{id}:
+      post:
+        description: Notificar hospital del incidente
+        queryParameters:
+          sanitarios?: integer
+          transporte?: string
+          camas?: integer
+          lat?: number
+          lon?: number
+          paciente?: string
+        body:
+          application/json:
+            type: NotificarHospitalIdPostRequest
+        responses:
+          200:
+            body:
+              application/json:
+                type: NotificacionResponse
+          400:
+            body:
+              application/json:
+                type: ErrorResponse
+/registro:
+  /indicente:
+    post:
+      description: Guardar registro del incidente
+      queryParameters:
+        paciente?: string
+        recursos?: string
+        sanitarios?: integer
+        hospital?: integer
+      body:
+        application/json:
+          type: RegistroIncidente
+      responses:
+        201:
+          description: Registro creado correctamente
+        400:
+          body:
+            application/json:
+              type: ErrorResponse
+/gestiones-policiales:
+  post:
+    description: Iniciar proceso integral de gestión policial
+    body:
+      application/json:
+        type: IncidentePolicialRequest
+    responses:
+      201:
+        description: Proceso policial iniciado y despacho creado correctamente
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+/jurisdicciones:
+  get:
+    description: Obtener jurisdicción por coordenadas
+    queryParameters:
+      latitud: number
+      longitud: number
+    responses:
+      200:
+        body:
+          application/json:
+            type: JurisdiccionPolicial
+      404:
+        body:
+          application/json:
+            type: ErrorResponse
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+/despachos:
+  post:
+    description: Registrar despacho policial
+    body:
+      application/json:
+        type: DespachoPolicial
+    responses:
+      201:
+        description: Registro de despacho policial creado satisfactoriamente
+      400:
+        body:
+          application/json:
+            type: ErrorResponse
+  /{id}:
+    put:
+      description: Cerrar asignación policial
+      responses:
+        200:
+          description: Asignación policial cerrada correctamente
+        400:
+          body:
+            application/json:
+              type: ErrorResponse
+/hospitales:
+  /solicitarRecursos:
+    post:
+      description: Gestion de recursos hospitalarios
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
+              properties:
+                codigo?: integer
+        404:
+          body:
+            application/json:
+              type: ErrorResponse
