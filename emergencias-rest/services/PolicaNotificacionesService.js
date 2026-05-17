@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
-const mailer = require('../services/mailer');
+const mailer = require('../services/mail');
 const db = require('../repository/db');
 
 /**

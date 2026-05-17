@@ -1,5 +1,5 @@
 {
-  "name":  "api-sistema-integral-de-emergencias-112",
+  "name": "api-sistema-integral-de-emergencias-112",
   "version": "1.0.0",
   "description": "API REST para la gestión integral de emergencias. Incluye consulta de disponibilidad, asignación de rutas y despacho de bomberos, gestión de recursos sanitarios y hospitalarios para incidentes (personal, camas y transporte), y coordinación de recursos policiales para jurisdicción y despacho.",
   "main": "index.js",
@@ -21,11 +21,12 @@
     "express": "^4.16.4",
     "express-openapi-validator": "^4.13.8",
     "js-yaml": "^3.3.0",
+    "mysql2": "^3.17.4",
+    "nodemailer": "^8.0.7",
     "ono": "^5.0.1",
     "openapi-sampler": "^1.0.0-beta.15",
     "swagger-ui-express": "^4.0.2",
-    "winston": "^3.2.1",
-    "mysql2": "^3.17.4"
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",

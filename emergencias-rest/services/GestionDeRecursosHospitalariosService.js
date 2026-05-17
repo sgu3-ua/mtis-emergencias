@@ -20,7 +20,7 @@ const hospitalesSolicitarRecursosPOST = () => new Promise(
         ));
         return;
       }
-      const query = 'SELECT codigo FROM recursos ORDER BY RAND() LIMIT 1';
+      const query = 'SELECT codigo FROM recursosHospital ORDER BY RAND() LIMIT 1';
       const result = await db.query(query, []);
       resolve(Service.successResponse({
         codigo: result[0].codigo

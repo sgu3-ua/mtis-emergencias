@@ -74,7 +74,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/Vehiculo"
+                  $ref: "#/components/schemas/vehiculo"
                 type: array
           description: Lista de vehículos obtenida correctamente
         "400":
@@ -130,7 +130,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Ruta"
+                $ref: "#/components/schemas/ruta"
           description: Ruta calculada con éxito
         "400":
           content:
@@ -160,7 +160,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EstadoIncidente"
+              $ref: "#/components/schemas/estadoIncidente"
         required: true
       responses:
         "200":
@@ -184,7 +184,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DespachoBomberos"
+              $ref: "#/components/schemas/despachoBomberos"
         required: true
       responses:
         "201":
@@ -256,7 +256,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Paciente"
+              $ref: "#/components/schemas/paciente"
         required: true
       responses:
         "201":
@@ -290,7 +290,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Recursos"
+                $ref: "#/components/schemas/recursos"
           description: Recursos necesarios para el código
         "400":
           content:
@@ -334,7 +334,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Transporte"
+                $ref: "#/components/schemas/transporte"
           description: Opciones de transporte disponibles
         "400":
           content:
@@ -400,7 +400,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/HospitalSearchResult"
+                  $ref: "#/components/schemas/hospitalSearchResult"
                 type: array
           description: Lista de hospitales que cumplen los criterios
         "400":
@@ -479,7 +479,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NotificacionResponse"
+                $ref: "#/components/schemas/notificacionResponse"
           description: Hospital notificado y respuesta recibida
         "400":
           content:
@@ -529,7 +529,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegistroIncidente"
+              $ref: "#/components/schemas/registroIncidente"
         required: true
       responses:
         "201":
@@ -553,7 +553,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/IncidentePolicialRequest"
+              $ref: "#/components/schemas/incidentePolicialRequest"
         required: true
       responses:
         "201":
@@ -593,7 +593,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/JurisdiccionPolicial"
+                $ref: "#/components/schemas/jurisdiccionPolicial"
           description: Jurisdicción encontrada
         "404":
           content:
@@ -631,7 +631,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/RecursoPolicial"
+                  $ref: "#/components/schemas/recursoPolicial"
                 type: array
           description: Lista de recursos policiales disponibles
         "400":
@@ -652,7 +652,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DespachoPolicial"
+              $ref: "#/components/schemas/despachoPolicial"
         required: true
       responses:
         "201":
@@ -747,7 +747,7 @@ components:
             $ref: "#/components/schemas/_jurisdicciones_get_404_response"
       description: Recurso no encontrado
   schemas:
-    Vehiculo:
+    vehiculo:
       example:
         tipo: autobomba
         estado: disponible
@@ -767,7 +767,7 @@ components:
           example: 1234-ABC
           type: string
       type: object
-    Ruta:
+    ruta:
       example:
         coordenadasNavegacion: coordenadasNavegacion
         tiempoEstimadoMin: 6
@@ -780,7 +780,7 @@ components:
         coordenadasNavegacion:
           type: string
       type: object
-    EstadoIncidente:
+    estadoIncidente:
       example:
         estado: estado
         horaActualizacion: 2000-01-23T04:56:07.000+00:00
@@ -793,7 +793,7 @@ components:
       required:
       - estado
       type: object
-    DespachoBomberos:
+    despachoBomberos:
       example:
         idIncidente: 0
         gravedad: gravedad
@@ -809,7 +809,7 @@ components:
       - gravedad
       - idIncidente
       type: object
-    Paciente:
+    paciente:
       example:
         idPaciente: 0
         fechaNacimiento: 2000-01-23
@@ -835,7 +835,7 @@ components:
       - fechaNacimiento
       - nombre
       type: object
-    Recursos:
+    recursos:
       example:
         descripcion: descripcion
         codigo: codigo
@@ -851,7 +851,7 @@ components:
         descripcion:
           type: string
       type: object
-    Transporte:
+    transporte:
       example:
         tiempoEstimadoMin: 0
         requiereAereo: true
@@ -864,7 +864,7 @@ components:
         tiempoEstimadoMin:
           type: integer
       type: object
-    HospitalSearchResult:
+    hospitalSearchResult:
       example:
         camasDisponibles: 1
         id: 0
@@ -883,7 +883,7 @@ components:
         personalDisponible:
           type: integer
       type: object
-    NotificacionResponse:
+    notificacionResponse:
       example:
         mensajeHospital: mensajeHospital
         estado: estado
@@ -896,7 +896,7 @@ components:
         mensajeHospital:
           type: string
       type: object
-    RegistroIncidente:
+    registroIncidente:
       example:
         idIncidente: 0
         recursosAsignados:
@@ -921,10 +921,10 @@ components:
         idIncidente:
           type: integer
         paciente:
-          $ref: "#/components/schemas/Paciente"
+          $ref: "#/components/schemas/paciente"
         recursosAsignados:
           items:
-            $ref: "#/components/schemas/Recursos"
+            $ref: "#/components/schemas/recursos"
           type: array
         hospitalAsignado:
           type: integer
@@ -934,7 +934,7 @@ components:
       required:
       - idIncidente
       type: object
-    IncidentePolicialRequest:
+    incidentePolicialRequest:
       example:
         gravedad: BAJA
         tipoIncidente: tipoIncidente
@@ -956,7 +956,7 @@ components:
       - longitud
       - tipoIncidente
       type: object
-    JurisdiccionPolicial:
+    jurisdiccionPolicial:
       example:
         tipoZona: URBANA
         id: 0
@@ -970,7 +970,7 @@ components:
           type: string
           example: URBANA
       type: object
-    RecursoPolicial:
+    recursoPolicial:
       example:
         unidadId: unidadId
         cuerpo: cuerpo
@@ -983,7 +983,7 @@ components:
         disponible:
           type: boolean
       type: object
-    DespachoPolicial:
+    despachoPolicial:
       example:
         unidadId: unidadId
         incidenteId: 6

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const db = require('../repository/db');
-const mailer = require('../services/mail.js');
+const mailer = require('../services/mail');
 
 /**
 * Buscar hospitales disponibles
@@ -25,20 +25,33 @@ const hospitalGET = ({ sanitarios, transporte, camas, lat, lon, codigo }) => new
         ));
         return;
       }
-      const query = 'SELECT id, nombre, direccion FROM hospitales WHERE personal_medico >= ? AND capacidad >= ? and camiones_ambulancia >= ? and helipuerto = ?'
-      const needsHelipuerto = (lat > 40.0 || lon > -3.0) || transporte.includes('aereo') || transporte.includes('heli') ? 1 : 0 ? 1 : 0;
+      const query = 'SELECT id, nombre, direccion FROM hospital WHERE personal_medico >= ? AND capacidad >= ? and camiones_ambulancia >= ? and helipuerto = ?'
+      const needsHelipuerto = (lat > 40.0 || lon > -3.0) || transporte.includes('aereo') || transporte.includes('heli') ? 1 : 0;
       transporte = transporte.toLowerCase();
       const camiones = (transporte.includes('aereo') || transporte.includes('heli') ? 0 : 1 * camas);
       const params = [sanitarios || 1, camas || 0, camiones, needsHelipuerto];
+      const result = await db.query(query, params);
 
-      resolve(Service.successResponse({
-        sanitarios,
-        transporte,
-        camas,
-        lat,
-        lon,
-        codigo,
+      if (result.length === 0) {
+        reject(Service.rejectResponse(
+          'No se encontraron hospitales que cumplan con los requisitos proporcionados',
+          404,
+        ));
+        return;
+      }
+      const hospitales = result.map(hospital => ({
+        id: hospital.id,
+        nombre: hospital.nombre,
+        direccion: hospital.direccion,
+        camasDisponibles: camas || 0,
+        personalDisponible: sanitarios || 0,
+        distancia: Math.random() * 10 + "km"
       }));
+
+      resolve(Service.successResponse(
+        hospitales,
+        200
+      ));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -61,10 +74,11 @@ const hospitalGET = ({ sanitarios, transporte, camas, lat, lon, codigo }) => new
 * notificarHospitalIdPostRequest NotificarHospitalIdPostRequest  (optional)
 * returns NotificacionResponse
 * */
-const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, paciente, notificarHospitalIdPostRequest }) => new Promise(
+const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, paciente, body }) => new Promise(
   async (resolve, reject) => {
     try {
-    const queryHospital = 'SELECT nombre, email FROM hospitales WHERE id = ?';
+    const notificarHospitalIdPostRequest = body;
+    const queryHospital = 'SELECT nombre, correo_electronico FROM hospital WHERE id = ?';
     let hospital;
     try {
       const result = await db.query(queryHospital, [id]);
@@ -105,7 +119,7 @@ const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, 
     //Le enviamos un correo al hospital
     await mailer.sendMail({
       from: 'emergencias@mail.com',
-      to: hospital.email,
+      to: hospital.correo_electronico,
       subject: asunto,
       text: mensaje
     });
@@ -125,12 +139,12 @@ const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, 
         subject = `Rechazo del hospital ${hospital.nombre} para incidente`;
     }
     await mailer.sendMail({
-        from: hospital.email,
+        from: hospital.correo_electronico,
         to: 'emergencias@mail.com',
         subject: subject,
         text: mensajeHospital
     });
-    return resolve(Service.successResponse({"estado": true, "mensajeHospital": mensajeHospital, "hospitalID": id}));
+    return resolve(Service.successResponse({"estado": aceptaNotificacion, "mensajeHospital": mensajeHospital, "hospitalID": id}));
   
   } catch (e) {
     reject(Service.rejectResponse(
@@ -147,12 +161,35 @@ const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, 
 * paciente Paciente 
 * no response value expected for this operation
 * */
-const pacientePOST = ({ paciente }) => new Promise(
+const pacientePOST = ({ body }) => new Promise(
   async (resolve, reject) => {
     try {
+      const paciente = body;
+      console.log('Recibiendo solicitud para registrar paciente:', paciente);
+      // Validamos que se haya proporcionado un objeto paciente válido
+      if (!paciente || typeof paciente !== 'object') {
+        reject(Service.rejectResponse('Petición inválida o parámetros incorrectos', 400));
+        return;
+      }
+      if (!paciente.nombre || typeof paciente.nombre !== 'string') {
+        reject(Service.rejectResponse('El campo nombre es obligatorio y debe ser una cadena de texto', 400));
+        return;
+      }
+      if (!paciente.fechaNacimiento || isNaN(Date.parse(paciente.fechaNacimiento))) {
+        reject(Service.rejectResponse('El campo fechaNacimiento es obligatorio y debe ser una fecha válida', 400));
+        return;
+      }
+      if (!paciente.sexo || (paciente.sexo.toLowerCase() !== 'm' && paciente.sexo.toLowerCase() !== 'f' && paciente.sexo.toLowerCase() !== 'o')) {
+        reject(Service.rejectResponse('El campo sexo es obligatorio y debe ser "m" o "f" o "o"', 400));
+        return;
+      }
+      if (!paciente.alergias || typeof paciente.alergias !== 'string') {
+        reject(Service.rejectResponse('El campo alergias es obligatorio y debe ser una cadena de texto', 400));
+        return;
+      }
       // Registramos el paciente en la base de datos y obtenemos su ID
-      const query = 'INSERT INTO pacientes (nombre, fecha_nacimiento, sexo, alergias) VALUES (?, ?, ?, ?)';
-      const params = [paciente.nombre, paciente.fecha_nacimiento, paciente.sexo, paciente.alergias];
+      const query = 'INSERT INTO paciente (nombre, fecha_nacimiento, sexo, alergias) VALUES (?, ?, ?, ?)';
+      const params = [paciente.nombre, paciente.fechaNacimiento, paciente.sexo, paciente.alergias];
       const result = await db.query(query, params);
 
       const pacienteId = result.id; // Suponiendo que el ID del paciente se devuelve en result.id

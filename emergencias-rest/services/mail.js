@@ -14,4 +14,4 @@ function sendMail(options) {
   return transporter.sendMail(options);
 }
 
-export { transporter, sendMail };
+module.exports = { transporter, sendMail };
