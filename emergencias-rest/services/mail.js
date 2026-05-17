@@ -9,3 +9,9 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false
   }
 });
+
+function sendMail(options) {
+  return transporter.sendMail(options);
+}
+
+export { transporter, sendMail };

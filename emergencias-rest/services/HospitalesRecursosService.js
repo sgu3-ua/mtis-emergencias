@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
+const db = require('../repository/db');
+const mailer = require('../services/mail.js');
 
 /**
 * Buscar hospitales disponibles
@@ -101,7 +103,7 @@ const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, 
     }
 
     //Le enviamos un correo al hospital
-    mailer.sendMail({
+    await mailer.sendMail({
       from: 'emergencias@mail.com',
       to: hospital.email,
       subject: asunto,
@@ -122,7 +124,7 @@ const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, 
         mensajeHospital = `El hospital ${hospital.nombre} ha rechazado la notificación debido a la falta de recursos disponibles.`;
         subject = `Rechazo del hospital ${hospital.nombre} para incidente`;
     }
-    mailer.sendMail({
+    await mailer.sendMail({
         from: hospital.email,
         to: 'emergencias@mail.com',
         subject: subject,

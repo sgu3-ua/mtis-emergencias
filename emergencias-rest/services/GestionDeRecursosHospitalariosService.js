@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
+const db = require('../repository/db');
 
 /**
 * Gestion de recursos hospitalarios
@@ -10,7 +11,19 @@ const Service = require('./Service');
 const hospitalesSolicitarRecursosPOST = () => new Promise(
   async (resolve, reject) => {
     try {
+      //Devolvemos un codigo de recurso al azar
+      const random = Math.random();
+      if (random < 0.1) { //10% de no saber que recursos asignar
+        reject(Service.rejectResponse(
+          'No se han podido asignar recursos en este momento. Intente nuevamente.',
+          404,
+        ));
+        return;
+      }
+      const query = 'SELECT codigo FROM recursos ORDER BY RAND() LIMIT 1';
+      const result = await db.query(query, []);
       resolve(Service.successResponse({
+        codigo: result[0].codigo
       }));
     } catch (e) {
       reject(Service.rejectResponse(

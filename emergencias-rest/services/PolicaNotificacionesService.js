@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
+const mailer = require('../services/mailer');
+const db = require('../repository/db');
 
 /**
 * Enviar aviso electrónico a patrulla
