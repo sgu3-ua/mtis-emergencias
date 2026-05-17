@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS aviso (
     telefono VARCHAR(20) NOT NULL,
     localizacion VARCHAR(255) NOT NULL,
     descripcion TEXT NOT NULL,
-    afectados INT DEFAULT 0,
+    afectados INT DEFAULT NULL,
     hay_fuego BOOLEAN DEFAULT FALSE,
     hay_humo BOOLEAN DEFAULT FALSE,
     hay_explosion BOOLEAN DEFAULT FALSE,
