@@ -426,48 +426,6 @@ paths:
         schema:
           type: integer
         style: simple
-      - explode: true
-        in: query
-        name: sanitarios
-        required: false
-        schema:
-          type: integer
-        style: form
-      - explode: true
-        in: query
-        name: transporte
-        required: false
-        schema:
-          type: string
-        style: form
-      - explode: true
-        in: query
-        name: camas
-        required: false
-        schema:
-          type: integer
-        style: form
-      - explode: true
-        in: query
-        name: lat
-        required: false
-        schema:
-          type: number
-        style: form
-      - explode: true
-        in: query
-        name: lon
-        required: false
-        schema:
-          type: number
-        style: form
-      - explode: true
-        in: query
-        name: paciente
-        required: false
-        schema:
-          type: string
-        style: form
       requestBody:
         content:
           application/json:
@@ -1030,6 +988,18 @@ components:
     _notificar_hospital__id__post_request:
       properties:
         mensaje:
+          type: string
+        sanitarios:
+          type: integer
+        transporte:
+          type: string
+        camas:
+          type: integer
+        lat:
+          type: number
+        lon:
+          type: number
+        paciente:
           type: string
       type: object
     _jurisdicciones_get_404_response:

@@ -74,10 +74,16 @@ const hospitalGET = ({ sanitarios, transporte, camas, lat, lon, codigo }) => new
 * notificarHospitalIdPostRequest NotificarHospitalIdPostRequest  (optional)
 * returns NotificacionResponse
 * */
-const notificarHospitalIdPOST = ({ id, sanitarios, transporte, camas, lat, lon, paciente, body }) => new Promise(
+const notificarHospitalIdPOST = ({ id, body }) => new Promise(
   async (resolve, reject) => {
     try {
     const notificarHospitalIdPostRequest = body;
+    const sanitarios = body.sanitarios;
+    const camas = body.camas;
+    const transporte = body.transporte;
+    const paciente = body.paciente;
+    const lat = body.lat;
+    const lon = body.lon;
     const queryHospital = 'SELECT nombre, correo_electronico FROM hospital WHERE id = ?';
     let hospital;
     try {

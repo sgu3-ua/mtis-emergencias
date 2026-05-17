@@ -105,6 +105,9 @@ class Controller {
 
   static async handleRequest(request, response, serviceOperation) {
     try {
+      console.log("Request:", request);
+      console.log("Response:", response);
+      console.log("Service Operation:", serviceOperation);
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
     } catch (error) {

@@ -13,6 +13,7 @@ const hospitalGET = async (request, response) => {
 };
 
 const notificarHospitalIdPOST = async (request, response) => {
+  console.log("Request:", request);
   await Controller.handleRequest(request, response, service.notificarHospitalIdPOST);
 };
 
