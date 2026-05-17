@@ -253,6 +253,24 @@ VALUES (
     3
 );
 
+insert into hospital (
+    nombre,
+    direccion,
+    capacidad,
+    camiones_ambulancia,
+    correo_electronico,
+    helipuerto,
+    personal_medico
+) values (
+    'Hospital de Elche',
+    'Calle de la Salud, Elche',
+    50,
+    2,
+    'hospital@elche.es',
+    TRUE,
+    10
+);
+
 insert into recursosHospital (
     descripcion,
     codigo,
