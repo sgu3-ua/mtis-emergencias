@@ -195,9 +195,10 @@ const pacientePOST = ({ body }) => new Promise(
       const pacienteId = result.id; // Suponiendo que el ID del paciente se devuelve en result.id
       resolve(Service.successResponse({
         paciente,
-        id: pacienteId,
-        code: 201
-      }));
+        id: pacienteId
+      },
+      201
+    ));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

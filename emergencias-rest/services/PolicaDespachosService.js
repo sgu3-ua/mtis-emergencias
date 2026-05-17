@@ -113,10 +113,11 @@ const despachosPOST = ({ despachoPolicial }) => new Promise(
       await db.query(insertDespachoQuery);
       despachoPolicial.horaDespacho = horaDespacho;
 
-      resolve(Service.successResponse({
-        despachoPolicial,
-        code : 201,
-      }));
+      resolve(Service.successResponse(
+        despachoPolicial
+      ,
+      201
+    ));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
