@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS aviso (
     personas_heridas BOOLEAN DEFAULT FALSE,
     riesgo_seguridad BOOLEAN DEFAULT FALSE,
     alteracion_orden_publico BOOLEAN DEFAULT FALSE,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    hora_llamada TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS incidente (
@@ -29,8 +29,7 @@ CREATE TABLE IF NOT EXISTS incidente (
     urgencia VARCHAR(20) NOT NULL,
     descripcion TEXT NOT NULL,
     localizacion VARCHAR(255) NOT NULL,
-    estado VARCHAR(30) DEFAULT 'ACTIVO',
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    estado VARCHAR(30) DEFAULT 'ACTIVO'
 );
 
 CREATE TABLE IF NOT EXISTS incidente_aviso (
