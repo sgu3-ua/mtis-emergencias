@@ -1,5 +1,463 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="openapi-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="openapi-config" api="openapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="1d102ab5-8abf-4116-a490-972c13282558" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="sistema_emergencias" />
+	</db:config>
+	<flow name="openapi-main">
+        <http:listener config-ref="openapi-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="openapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="openapi-console">
+        <http:listener config-ref="openapi-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="openapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\incidentes\(id)\estado:application\json:openapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="put:\incidentes\(id)\estado:application\json:openapi-config" />
+    </flow>
+    <flow name="put:\despachos\(id):openapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="put:\despachos\(id):openapi-config" />
+    </flow>
+    <flow name="get:\parques\(id)\flota:openapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<db:select doc:name="Select" doc:id="17510522-c144-4754-96ef-2088b5913f88" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT idVehiculo, tipo, estado, matricula FROM vehiculo_bomberos WHERE parque_id = :idParque]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'idParque': vars.id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="15341fed-8c88-4063-ad27-68f1fa93f449" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map (vehiculo) -> {
+    idVehiculo: vehiculo.idVehiculo,
+    tipo: vehiculo.tipo,
+    estado: vehiculo.estado,
+    matricula: vehiculo.matricula
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e24f9c89-68ca-40f6-81c2-73c8d33ba1fe" >
+				<ee:transform doc:name="Transform Message" doc:id="b92ec6a5-3ea7-41e0-84ae-47ee9b741a93" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Ha ocurrido un error interno en el módulo de bomberos",
+    "descripcion": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="500" doc:name="Set Variable" doc:id="c8f31466-86b7-41b0-94ac-5c2be471d749" variableName="httpStatus" />
+			</on-error-continue>
+		</error-handler>
+    </flow>
+    <flow name="get:\hospital:openapi-config">
+        <logger level="INFO" message="get:\hospital:openapi-config" />
+    </flow>
+    <flow name="get:\jurisdicciones:openapi-config">
+        <logger level="INFO" message="get:\jurisdicciones:openapi-config" />
+    </flow>
+    <flow name="get:\recursos:openapi-config">
+        <logger level="INFO" message="get:\recursos:openapi-config" />
+    </flow>
+    <flow name="get:\rutas:openapi-config">
+        <logger level="INFO" message="get:\rutas:openapi-config" />
+    </flow>
+    <flow name="get:\transporte:openapi-config">
+        <logger level="INFO" message="get:\transporte:openapi-config" />
+    </flow>
+    <flow name="get:\recursos\(codigo):openapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="codigo">attributes.uriParams.'codigo'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="get:\recursos\(codigo):openapi-config" />
+    </flow>
+    <flow name="post:\notificaciones\alerta-retraso:application\json:openapi-config">
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="7cf9ae1d-3892-4fad-af6e-31e410d379e1" variableName="payloadOriginal"/>
+		<db:select doc:name="Select" doc:id="a31190a4-3e85-4e9c-80b6-7cacd093dead" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT COUNT(*) as existe FROM incidente WHERE id = :idIncidente]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'idIncidente': vars.payloadOriginal.idIncidente}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="69539d21-e32f-4602-a59c-05d58d698d7e" >
+			<when expression="#[payload[0].existe &lt;= 0]">
+				<ee:transform doc:name="Transform Message" doc:id="e88ec25c-d2cf-4cb9-bf9d-42fe02c87aed" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "No existe el incidente"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="404" doc:name="Set Variable" doc:id="314f5499-c160-4bec-aa65-9c9105be9db8" variableName="httpStatus" />
+			</when>
+			<otherwise >
+				<db:insert doc:name="Insert" doc:id="fe06c389-5825-4c3c-901e-251581e93fa4" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO notificacion (incidente_id, mensaje, tipo) VALUES (:idIncidente, :mensaje, 'BOMBEROS')]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'idIncidente': vars.payloadOriginal.idIncidente,
+    'mensaje': vars.payloadOriginal.mensaje default "El camión asignado no ha confirmado salida en el tiempo límite."
+}]]]></db:input-parameters>
+		</db:insert>
+				<db:update doc:name="Update" doc:id="8bab7397-e244-4a53-b917-c8ec04a2929a" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE incidente SET estado = 'BOMBEROS_ALERTA_RETRASO' WHERE id = :idIncidente]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'idIncidente': vars.payloadOriginal.idIncidente
+}]]]></db:input-parameters>
+		</db:update>
+				<ee:transform doc:name="Transform Message" doc:id="3d0f0b44-9569-460d-8470-d6c1f1e5824b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "idIncidente": vars.payloadOriginal.idIncidente,
+    "mensaje": "Alerta de retraso registrada correctamente"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="debaa977-0518-447b-aa0d-8763c4cc6b96" >
+				<ee:transform doc:name="Transform Message" doc:id="5c951e12-b432-4967-96f5-09f4a6460c84" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Ha ocurrido un error interno en el módulo de bomberos",
+    "descripcion": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="500" doc:name="Set Variable" doc:id="7dec1320-c11c-4833-8405-33ad84f8aaf8" variableName="httpStatus"/>
+			</on-error-continue>
+		</error-handler>
+    </flow>
+    <flow name="post:\despachos-bomberos:application\json:openapi-config">
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="7dea1995-9608-4dd1-ba42-8ad95316ccdb" variableName="payloadOriginal" />
+		<db:select doc:name="Select" doc:id="4c63122e-a06b-47f8-a66a-2cd562d1168e" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT COUNT(*) as existe FROM incidente WHERE id = :idincidente;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'idincidente': vars.payloadOriginal.idIncidente}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="b55d9159-6aca-43e6-8b4f-fe6159d337e6" >
+			<when expression="#[payload[0].existe &lt;= 0]">
+				<ee:transform doc:name="Transform Message" doc:id="c0e28ce7-c8bb-42b6-9c94-d5e1e1794155" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "No existe el incidente"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="404" doc:name="Set Variable" doc:id="6e978909-448a-4cf9-9b5b-9c5b9e3eb0fa" variableName="httpStatus"/>
+			</when>
+			<otherwise >
+				<db:update doc:name="Update" doc:id="2cfcff41-ec6e-4dd8-8126-1812ee9a79c7" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE incidente SET requiere_bomberos = TRUE, urgencia = :gravedad, estado = 'BOMBEROS_DESPACHADOS' WHERE id = :idIncidente]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'gravedad': vars.payloadOriginal.gravedad,
+    'idIncidente': vars.payloadOriginal.idIncidente
+}]]]></db:input-parameters>
+		</db:update>
+				<db:insert doc:name="Insert" doc:id="135965a7-58b7-4b08-b247-1edeef7ad135" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO notificacion (incidente_id, mensaje, tipo) VALUES (:idIncidente, :mensaje, 'BOMBEROS')]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'idIncidente': vars.payloadOriginal.idIncidente,
+    'mensaje': "Despacho iniciado. Vehículos: " ++ (vars.payloadOriginal.vehiculosRequeridos default "N/D")
+}]]]></db:input-parameters>
+		</db:insert>
+				<ee:transform doc:name="Transform Message" doc:id="e1213fed-27e9-4e86-b299-2fd868d3cc64">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "idIncidente": vars.payloadOriginal.idIncidente,
+    "mensaje": "Despacho creado correctamente"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ce634d4f-6142-4a7d-8b11-17fd495e40d7" >
+				<ee:transform doc:name="Transform Message" doc:id="e6cde7d9-7947-44c8-b412-3bf9072ce219" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Ha ocurrido un error interno en el módulo de bomberos",
+    "descripcion": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="500" doc:name="Set Variable" doc:id="439cb645-aea0-4727-b00e-74d5ace11845" variableName="httpStatus" />
+			</on-error-continue>
+		</error-handler>
+    </flow>
+    <flow name="post:\despachos:application\json:openapi-config">
+        <logger level="INFO" message="post:\despachos:application\json:openapi-config" />
+    </flow>
+    <flow name="post:\gestiones-policiales:application\json:openapi-config">
+        <logger level="INFO" message="post:\gestiones-policiales:application\json:openapi-config" />
+    </flow>
+    <flow name="post:\registro\indicente:application\json:openapi-config">
+        <logger level="INFO" message="post:\registro\indicente:application\json:openapi-config" />
+    </flow>
+    <flow name="post:\notificaciones:openapi-config">
+        <logger level="INFO" message="post:\notificaciones:openapi-config" />
+    </flow>
+    <flow name="post:\notificaciones\orden-movilizacion:application\json:openapi-config">
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="fe5bba67-3804-492a-bff3-169a5a7379e4" variableName="payloadOriginal"/>
+		<db:select doc:name="Select" doc:id="68654188-f9fb-4329-add4-75c6c683ecee" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT 
+  (SELECT COUNT(*) FROM incidente WHERE id = :idIncidente) as existeIncidente,
+  (SELECT COUNT(*) FROM vehiculo_bomberos WHERE idVehiculo = :idVehiculo) as existeVehiculo]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  'idIncidente': vars.payloadOriginal.idIncidente,
+  'idVehiculo': vars.payloadOriginal.idVehiculo
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="7c3e0173-1ead-4c6f-99d0-0a27b377e79a" >
+			<when expression="#[payload[0].existeIncidente &lt;= 0]">
+				<ee:transform doc:name="Transform Message" doc:id="e61245c7-1645-40ed-80f1-94aabc6eb8e6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Incidente no encontrado"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="404" doc:name="Set Variable" doc:id="8d5b3b74-bb56-4a82-be4d-a55915c082b4" variableName="httpStatus" />
+			</when>
+			<when expression="#[payload[0].existeVehiculo &lt;= 0]">
+				<ee:transform doc:name="Transform Message" doc:id="b7757903-9400-4655-9645-fff94ddabbb8" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Vehículo no encontrado"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="404" doc:name="Set Variable" doc:id="e0ed7c04-44bf-4ada-aa92-94f105bdd03c" variableName="httpStatus" />
+			</when>
+			<otherwise >
+				<db:insert doc:name="Insert" doc:id="b86874c1-f08a-4ad3-b185-2809085b34e9" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO notificacion (incidente_id, mensaje, tipo) VALUES (:idIncidente, :mensaje, 'BOMBEROS')]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'idIncidente': vars.payloadOriginal.idIncidente,
+    'mensaje': "Orden de movilización enviada al vehículo " ++ vars.payloadOriginal.idVehiculo
+}]]]></db:input-parameters>
+		</db:insert>
+				<db:update doc:name="Update" doc:id="4a57a817-3744-402b-bc27-44b5bb664741" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE vehiculo_bomberos SET estado = 'en_ruta' WHERE idVehiculo = :idVehiculo]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'idVehiculo': vars.payloadOriginal.idVehiculo
+}]]]></db:input-parameters>
+		</db:update>
+				<db:update doc:name="Update" doc:id="4fd99a7e-1506-4dbd-8e66-15d0cebd6bf0" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE incidente SET estado = 'BOMBEROS_EN_CAMINO' WHERE id = :idIncidente]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'idIncidente': vars.payloadOriginal.idIncidente
+}]]]></db:input-parameters>
+		</db:update>
+				<db:insert doc:name="Insert" doc:id="c2fd775c-b417-4b23-b3ff-25ac1c9217e0" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO registro_despliegue_bomberos (incidente_id, vehiculo_bomberos_id) VALUES (:idIncidente, :idVehiculo)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    'idIncidente': vars.payloadOriginal.idIncidente,
+    'idVehiculo': vars.payloadOriginal.idVehiculo
+}]]]></db:input-parameters>
+		</db:insert>
+				<ee:transform doc:name="Transform Message" doc:id="c153f9b6-d301-40c7-a68d-4e10ec3adfae">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "idIncidente": vars.payloadOriginal.idIncidente,
+    "idVehiculo": vars.payloadOriginal.idVehiculo,
+    "mensaje": "Camión movilizado con éxito"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="5e2c5aa1-dbb7-4fe3-be38-40b1c1fd88b0" >
+				<ee:transform doc:name="Transform Message" doc:id="b548d1b8-cb19-4fe1-a140-89e1db75d4e6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Ha ocurrido un error interno en el módulo de bomberos",
+    "descripcion": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="500" doc:name="Set Variable" doc:id="146a2309-35a8-4939-b6fb-0b051cffa5a8" variableName="httpStatus" />
+			</on-error-continue>
+		</error-handler>
+    </flow>
+    <flow name="post:\paciente:application\json:openapi-config">
+        <logger level="INFO" message="post:\paciente:application\json:openapi-config" />
+    </flow>
+    <flow name="post:\hospitales\solicitarRecursos:openapi-config">
+        <logger level="INFO" message="post:\hospitales\solicitarRecursos:openapi-config" />
+    </flow>
+    <flow name="openapiFlow" doc:id="a1867e97-633b-4680-9aa2-c94d72ef3980" >
+		<logger level="INFO" doc:name="Logger" doc:id="41a4ef06-bde1-4c41-bca9-46642c64b21d" message="openapiFlow" />
+	</flow>
+	<flow name="post:\notificar\hospital\(id):application\json:openapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="post:\notificar\hospital\(id):application\json:openapi-config" />
+    </flow>
+</mule>
