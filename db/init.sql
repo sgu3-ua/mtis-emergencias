@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS aviso (
     afectados INT DEFAULT NULL,
     hay_fuego BOOLEAN DEFAULT FALSE,
     hay_humo BOOLEAN DEFAULT FALSE,
-    hay_explosion BOOLEAN DEFAULT FALSE,
     personas_atrapadas BOOLEAN DEFAULT FALSE,
     personas_heridas BOOLEAN DEFAULT FALSE,
     riesgo_seguridad BOOLEAN DEFAULT FALSE,
+    riesgo_estructural BOOLEAN DEFAULT FALSE,
     alteracion_orden_publico BOOLEAN DEFAULT FALSE,
     hora_llamada TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -172,10 +172,10 @@ INSERT INTO aviso (
     afectados,
     hay_fuego,
     hay_humo,
-    hay_explosion,
     personas_atrapadas,
     personas_heridas,
     riesgo_seguridad,
+    riesgo_estructural,
     alteracion_orden_publico
 )
 VALUES (
@@ -199,24 +199,24 @@ INSERT INTO aviso (
     afectados,
     hay_fuego,
     hay_humo,
-    hay_explosion,
     personas_atrapadas,
     personas_heridas,
     riesgo_seguridad,
+    riesgo_estructural,
     alteracion_orden_publico
 )
 VALUES (
     '611987654',
     'Avenida de Denia, Alicante',
-    'Hay personas heridas y mucho humo en la carretera',
-    2,
-    TRUE,
-    TRUE,
+    'Hombre circulando en una furgoneta exhibiendo un arma',
+    0,
+    FALSE,
+    FALSE,
     FALSE,
     FALSE,
     TRUE,
-    TRUE,
-    FALSE
+    FALSE,
+    TRUE
 );
 
 INSERT INTO incidente_aviso (incidente_id, aviso_id)
