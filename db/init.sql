@@ -205,7 +205,7 @@ INSERT INTO incidente (requiere_bomberos, requiere_policia, requiere_sanitarios,
 
 -- AVISOS (40 registros)
 
-INSERT INTO aviso (telefono, localizacion, descripcion, afectados, hay_fuego, hay_humo, hay_explosion, personas_atrapadas, personas_heridas, riesgo_seguridad, alteracion_orden_publico) VALUES
+INSERT INTO aviso (telefono, localizacion, descripcion, afectados, hay_fuego, hay_humo, personas_atrapadas, personas_heridas, riesgo_seguridad, riesgo_estructural, alteracion_orden_publico) VALUES
 ('600123123', 'Avenida de Denia, Alicante', 'Vehículo ardiendo tras colisión', 3, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE),
 ('611987654', 'Avenida de Denia, Alicante', 'Hay personas heridas y mucho humo en la carretera', 2, TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, FALSE),
 ('622111222', 'Sierra de Aitana, Alicante', 'Se ve fuego y humo desde la carretera', 0, TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE),
