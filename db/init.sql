@@ -175,13 +175,11 @@ CREATE TABLE IF NOT EXISTS informe (
     FOREIGN KEY (expediente_id) REFERENCES expediente(id)
 );
 
--- ============================================================
 -- DATOS DE PRUEBA EXTENSOS
--- ============================================================
 
--- --------------------------------------------------
+
 -- INCIDENTES (20 registros)
--- --------------------------------------------------
+
 INSERT INTO incidente (requiere_bomberos, requiere_policia, requiere_sanitarios, urgencia, descripcion, localizacion, estado) VALUES
 (TRUE,  TRUE,  TRUE,  'ALTA',   'Accidente de tráfico con incendio y varios heridos', 'Avenida de Denia, Alicante', 'ACTIVO'),
 (TRUE,  TRUE,  FALSE, 'ALTA',   'Incendio forestal en zona de montaña', 'Sierra de Aitana, Alicante', 'ACTIVO'),
@@ -204,9 +202,9 @@ INSERT INTO incidente (requiere_bomberos, requiere_policia, requiere_sanitarios,
 (TRUE,  FALSE, TRUE,  'ALTA',   'Rescate de montañista accidentado en barranco', 'Barranco del Salt, Aitana', 'ACTIVO'),
 (FALSE, TRUE,  TRUE,  'MEDIA',  'Agresión con arma blanca en zona de ocio', 'Puerto de Alicante, Muelle 4', 'ACTIVO');
 
--- --------------------------------------------------
+
 -- AVISOS (40 registros)
--- --------------------------------------------------
+
 INSERT INTO aviso (telefono, localizacion, descripcion, afectados, hay_fuego, hay_humo, hay_explosion, personas_atrapadas, personas_heridas, riesgo_seguridad, alteracion_orden_publico) VALUES
 ('600123123', 'Avenida de Denia, Alicante', 'Vehículo ardiendo tras colisión', 3, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE),
 ('611987654', 'Avenida de Denia, Alicante', 'Hay personas heridas y mucho humo en la carretera', 2, TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, FALSE),
@@ -249,9 +247,9 @@ INSERT INTO aviso (telefono, localizacion, descripcion, afectados, hay_fuego, ha
 ('688999000', 'Avenida de la Constitución, Villena', 'Derrumbe parcial de techo en nave deportiva', 4, FALSE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE),
 ('699111222', 'Calle del Carmen, Alicante', 'Persecución policial con colisiones', 2, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE);
 
--- --------------------------------------------------
+
 -- INCIDENTE_AVISO
--- --------------------------------------------------
+
 INSERT INTO incidente_aviso (incidente_id, aviso_id) VALUES
 (1, 1), (1, 2),
 (2, 3),
@@ -276,9 +274,9 @@ INSERT INTO incidente_aviso (incidente_id, aviso_id) VALUES
 (1, 22), (2, 23), (3, 24), (4, 25), (5, 26), (6, 27), (7, 28), (8, 29), (9, 30),
 (10, 31), (11, 32), (12, 33), (13, 34), (14, 35), (15, 36), (16, 37), (17, 38), (18, 39), (19, 40), (20, 40);
 
--- --------------------------------------------------
+
 -- HOSPITALES (8 registros)
--- --------------------------------------------------
+
 INSERT INTO hospital (nombre, direccion, capacidad, camiones_ambulancia, correo_electronico, helipuerto, personal_medico) VALUES
 ('Hospital General Universitario de Alicante', 'Calle Pintor Baeza, 15, Alicante', 350, 8, 'info.hgua@gva.es', TRUE, 120),
 ('Hospital Universitario de San Juan', 'Calle Alicante, 83, San Juan de Alicante', 200, 4, 'contacto.husj@gva.es', FALSE, 75),
@@ -289,9 +287,9 @@ INSERT INTO hospital (nombre, direccion, capacidad, camiones_ambulancia, correo_
 ('Hospital de la Vega Baja', 'Ctra. de Orihuela, s/n, Orihuela', 220, 5, 'hospital.vega@gva.es', FALSE, 80),
 ('Hospital de Denia', 'Av. Marina Española, 50, Denia', 160, 3, 'hospital.denia@gva.es', TRUE, 50);
 
--- --------------------------------------------------
+
 -- RECURSOS HOSPITALARIOS (8 registros)
--- --------------------------------------------------
+
 INSERT INTO recursosHospital (descripcion, codigo, camasRequeridas, personalRequerido) VALUES
 ('Cama de hospitalización general', 100, 1, 2),
 ('Unidad de cuidados intensivos (UCI)', 101, 1, 3),
@@ -302,9 +300,9 @@ INSERT INTO recursosHospital (descripcion, codigo, camasRequeridas, personalRequ
 ('Equipo de traumatología de emergencia', 106, 2, 3),
 ('Unidad de neonatología', 107, 2, 3);
 
--- --------------------------------------------------
+
 -- PACIENTES (25 registros)
--- --------------------------------------------------
+
 INSERT INTO paciente (nombre, fecha_nacimiento, sexo, alergias) VALUES
 ('Juan García Martínez', '1985-03-15', 'Masculino', 'Penicilina'),
 ('María López Sánchez', '1990-07-22', 'Femenino', 'Ninguna'),
@@ -332,9 +330,9 @@ INSERT INTO paciente (nombre, fecha_nacimiento, sexo, alergias) VALUES
 ('Marta Ramos Espejo', '1994-05-09', 'Femenino', 'Yodo'),
 ('Sergio Vázquez Soto', '1977-08-26', 'Masculino', 'Ninguna');
 
--- --------------------------------------------------
+
 -- INCIDENTE_HOSPITAL (15 registros)
--- --------------------------------------------------
+
 INSERT INTO incidente_hospital (incidente_id, hospital_id, paciente_id) VALUES
 (1, 1, 1), (1, 1, 2), (1, 1, 3),
 (4, 2, 4),
@@ -347,9 +345,9 @@ INSERT INTO incidente_hospital (incidente_id, hospital_id, paciente_id) VALUES
 (20, 1, 23), (20, 1, 24),
 (2, 7, 25);
 
--- --------------------------------------------------
+
 -- INCIDENTE_HOSPITAL_RECURSOSHOSPITAL
--- --------------------------------------------------
+
 INSERT INTO incidente_hospital_recursosHospital (incidente_hospital_id, recurso_id) VALUES
 (1, 1), (1, 2), (1, 3),
 (2, 1),
@@ -377,9 +375,9 @@ INSERT INTO incidente_hospital_recursosHospital (incidente_hospital_id, recurso_
 (24, 1), (24, 4),
 (25, 2), (25, 5);
 
--- --------------------------------------------------
+
 -- NOTIFICACIONES (25 registros)
--- --------------------------------------------------
+
 INSERT INTO notificacion (incidente_id, mensaje, tipo) VALUES
 (1, 'Envío urgente de unidades de bomberos y sanitarios a accidente en Avenida de Denia', 'BOMBEROS'),
 (1, 'Se requiere ambulancia y personal médico para atención de heridos', 'AMBULANCIA'),
@@ -412,9 +410,9 @@ INSERT INTO notificacion (incidente_id, mensaje, tipo) VALUES
 (20, 'Policía portuaria y local para control de zona', 'POLICIA'),
 (20, 'Ambulancia para traslado de heridos por arma blanca', 'AMBULANCIA');
 
--- --------------------------------------------------
+
 -- COMISARÍAS (6 registros)
--- --------------------------------------------------
+
 INSERT INTO comisaria (nombre, direccion, capacidad, correo_electronico) VALUES
 ('Comisaría Provincial de Alicante', 'Calle de la Policía, 12, Alicante', 80, 'cp.alicante@policia.es'),
 ('Comisaría de San Juan de Alicante', 'Calle de la Policía, 5, San Juan', 35, 'sanjuancp@policia.es'),
@@ -423,9 +421,9 @@ INSERT INTO comisaria (nombre, direccion, capacidad, correo_electronico) VALUES
 ('Comisaría de Villena', 'Calle del Medio, 8, Villena', 25, 'villenacp@policia.es'),
 ('Comisaría de Denia', 'Calle del Marqués de Campo, 15, Denia', 30, 'deniacp@policia.es');
 
--- --------------------------------------------------
+
 -- UNIDADES DE POLICÍA (18 registros)
--- --------------------------------------------------
+
 INSERT INTO unidad_policia (comisaria_id, cuerpo, disponibilidad) VALUES
 (1, 'local', TRUE),
 (1, 'local', TRUE),
@@ -449,9 +447,9 @@ INSERT INTO unidad_policia (comisaria_id, cuerpo, disponibilidad) VALUES
 (6, 'nacional', TRUE),
 (6, 'guardia civil', TRUE);
 
--- --------------------------------------------------
+
 -- REGISTROS DE DESPLIEGUE (15 registros)
--- --------------------------------------------------
+
 INSERT INTO registro_despliegue (incidente_id, unidad_policia_id) VALUES
 (1, 1), (1, 3), (1, 5),
 (3, 4),
@@ -467,9 +465,9 @@ INSERT INTO registro_despliegue (incidente_id, unidad_policia_id) VALUES
 (18, 1), (18, 2), (18, 5),
 (20, 1), (20, 3);
 
--- --------------------------------------------------
+
 -- PARQUES DE BOMBEROS (6 registros)
--- --------------------------------------------------
+
 INSERT INTO parque_bomberos (nombre, direccion, capacidad_vehiculos) VALUES
 ('Parque Central de Alicante', 'Av. Locutor Vicente Hipólito, 20, Alicante', 15),
 ('Parque de Bomberos de Elche', 'Ctra. de la Carrús, s/n, Elche', 12),
@@ -478,9 +476,9 @@ INSERT INTO parque_bomberos (nombre, direccion, capacidad_vehiculos) VALUES
 ('Parque de Bomberos de Villena', 'Ctra. de Yecla, km 2, Villena', 7),
 ('Parque de Bomberos de Denia', 'Carrer del Parc, 12, Denia', 6);
 
--- --------------------------------------------------
+
 -- VEHÍCULOS DE BOMBEROS (20 registros)
--- --------------------------------------------------
+
 INSERT INTO vehiculo_bomberos (parque_id, tipo, estado, matricula) VALUES
 (1, 'autobomba', 'disponible', '1234-ABC'),
 (1, 'autoescala', 'disponible', '9876-XYZ'),
@@ -504,9 +502,49 @@ INSERT INTO vehiculo_bomberos (parque_id, tipo, estado, matricula) VALUES
 (6, 'autobomba', 'disponible', 'DENI-01'),
 (6, 'camion cisterna', 'disponible', 'DENI-02');
 
--- --------------------------------------------------
+
+-- REGISTROS DE DESPLIEGUE DE BOMBEROS (20 registros)
+
+INSERT INTO registro_despliegue_bomberos (incidente_id, vehiculo_bomberos_id, hora_despacho) VALUES
+-- Incidente 1: Accidente de trafico con incendio (Alicante)
+(1, 1, '2025-04-15 18:12:00'),
+(1, 7, '2025-04-15 18:13:00'),
+-- Incidente 2: Incendio forestal (Aitana) - refuerzos desde Alicante y Elche
+(2, 1, '2025-04-20 13:05:00'),
+(2, 8, '2025-04-20 13:10:00'),
+(2, 11, '2025-04-20 13:15:00'),
+-- Incidente 5: Explosion quimica (Elche) - parque de Elche
+(5, 8, '2025-05-01 08:47:00'),
+(5, 9, '2025-05-01 08:48:00'),
+(5, 12, '2025-05-01 08:50:00'),
+-- Incidente 7: Colapso edificio por gas (Elche)
+(7, 8, '2025-05-03 11:22:00'),
+(7, 12, '2025-05-03 11:23:00'),
+-- Incidente 8: Accidente multiple en autovia (A-31) - parque Alicante
+(8, 1, '2025-05-05 07:16:00'),
+(8, 2, '2025-05-05 07:17:00'),
+(8, 7, '2025-05-05 07:18:00'),
+-- Incidente 11: Incendio industrial (San Vicente) - parque Alicante
+(11, 1, '2025-05-08 16:42:00'),
+(11, 4, '2025-05-08 16:43:00'),
+(11, 7, '2025-05-08 16:44:00'),
+-- Incidente 13: Incendio en hospital (Alicante)
+(13, 1, '2025-05-10 22:02:00'),
+(13, 7, '2025-05-10 22:03:00'),
+-- Incidente 15: Fuga de gas en edificio (Elche)
+(15, 16, '2025-05-12 09:10:00'),
+(15, 18, '2025-05-12 09:15:00'),
+-- Incidente 17: Colision frontal autobus-camion (Elche) - varios parques
+(17, 1, '2025-05-14 14:20:00'),
+(17, 7, '2025-05-14 14:21:00'),
+(17, 8, '2025-05-14 14:22:00'),
+-- Incidente 19: Rescate montanista (Aitana) - parque Alcoy + Alicante
+(19, 15, '2025-05-16 11:05:00'),
+(19, 13, '2025-05-16 11:06:00');
+
+
 -- EXPEDIENTES (15 registros)
--- --------------------------------------------------
+
 INSERT INTO expediente (incidente_id, clasificacion, estado, fecha_creacion, fecha_cierre, observaciones) VALUES
 (3, 'Robo con fuerza', 'CERRADO', '2025-01-10 14:30:00', '2025-02-15 10:00:00', 'Detenido el autor, recuperados los efectos'),
 (6, 'Altercado en vía pública', 'CERRADO', '2025-01-12 23:45:00', '2025-01-13 04:20:00', 'Imputados 3 individuos por desorden público'),
@@ -524,9 +562,9 @@ INSERT INTO expediente (incidente_id, clasificacion, estado, fecha_creacion, fec
 (11, 'Incendio industrial', 'ACTIVO', '2025-05-08 16:40:00', NULL, 'Identificación de sustancias ardientes en curso'),
 (13, 'Incendio hospital', 'ACTIVO', '2025-05-10 22:00:00', NULL, 'Peritaje para determinar origen del fuego');
 
--- --------------------------------------------------
+
 -- DATOS DE SERVICIO (20 registros)
--- --------------------------------------------------
+
 INSERT INTO dato_servicio (expediente_id, servicio, hora_salida, hora_llegada, actuaciones, recursos_utilizados, observaciones) VALUES
 (1, 'Policía Científica', '2025-01-10 15:00:00', '2025-01-10 16:30:00', 'Levantamiento de huellas, fotografía del lugar', 'Equipo de dactiloscopia, cámara forense', 'Huellas dactilares encontradas en la entrada'),
 (1, 'Policía Judicial', '2025-01-10 16:45:00', '2025-01-10 18:00:00', 'Entrevista a testigos y vecinos', 'Vehículo patrulla, grabadora', 'Testigo vio al sospechoso huir en coche rojo'),
@@ -549,9 +587,9 @@ INSERT INTO dato_servicio (expediente_id, servicio, hora_salida, hora_llegada, a
 (14, 'Bomberos', '2025-05-08 16:45:00', '2025-05-08 19:00:00', 'Extinción con espuma y refrigeración', 'Autobombas, camión cisterna', 'Posible reignición controlada'),
 (15, 'Bomberos', '2025-05-10 22:05:00', '2025-05-10 23:30:00', 'Evacuación y extinción de incendio en planta 3', 'Autobombas, unidad de mando', 'Evacuación ordenada de 30 pacientes');
 
--- --------------------------------------------------
+
 -- INFORMES (15 registros)
--- --------------------------------------------------
+
 INSERT INTO informe (expediente_id, tipo, resumen) VALUES
 (1, 'Pericial', 'Análisis de huellas y vestigios en escena del robo. Coincidencia con individuo fichado previamente.'),
 (2, 'Operativo', 'Relato detallado de la intervención de la Unidad de Prevención. 3 detenidos, ningún agente herido.'),
