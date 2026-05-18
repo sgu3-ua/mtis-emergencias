@@ -84,6 +84,7 @@ const notificacionesOrdenMovilizacionPOST = ( requestParams ) => new Promise(
 
       await query('UPDATE incidente SET estado = ? WHERE id = ?', ['BOMBEROS_EN_CAMINO', idIncidente]);
       await query('UPDATE vehiculo_bomberos SET estado = ? WHERE idVehiculo = ?', ['en_ruta', idVehiculo]);
+      await query('INSERT INTO registro_despliegue_bomberos (incidente_id, vehiculo_bomberos_id) VALUES (?, ?)', [idIncidente, idVehiculo]);
 
       resolve(Service.successResponse({
         idIncidente,

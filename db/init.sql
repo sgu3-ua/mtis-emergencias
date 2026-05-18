@@ -136,6 +136,15 @@ create table if not exists vehiculo_bomberos (
     FOREIGN KEY (parque_id) REFERENCES parque_bomberos(id)
 );
 
+create table if not exists registro_despliegue_bomberos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    incidente_id INT,
+    vehiculo_bomberos_id INT,
+    hora_despacho TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incidente_id) REFERENCES incidente(id),
+    FOREIGN KEY (vehiculo_bomberos_id) REFERENCES vehiculo_bomberos(idVehiculo)
+);
+
 -- Meter datos de prueba
 INSERT INTO incidente (
     requiere_bomberos,
