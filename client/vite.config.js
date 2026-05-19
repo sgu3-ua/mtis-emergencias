@@ -8,7 +8,7 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/llamadas': {
-        target: 'http://localhost:8095',
+        target: 'http://localhost:8085',
         changeOrigin: true
       }
     }

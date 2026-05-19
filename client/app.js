@@ -72,42 +72,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
       show('<p class="muted">Solicitando atención...</p>');
 
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
-        `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns0="http://www.example.org/ServicioGestionLlamadaEmergencia/" xmlns:typ="http://www.example.org/tipos">\n` +
-        `  <soap:Body>\n` +
-        `    <ns0:gestionarLlamadaEmergencia>\n` +
-        `      <typ:aviso>\n` +
-        `        <typ:telefono>${escapeXml(telefono)}</typ:telefono>\n` +
-        `        <typ:localizacion>${escapeXml(localizacion)}</typ:localizacion>\n` +
-        `        <typ:descripcion>${escapeXml(descripcion)}</typ:descripcion>\n` +
-        (afectados !== '' ? `        <typ:afectados>${escapeXml(afectados)}</typ:afectados>\n` : '') +
-        `        <typ:hayFuego>${hayFuego}</typ:hayFuego>\n` +
-        `        <typ:hayHumo>${hayHumo}</typ:hayHumo>\n` +
-        `        <typ:personasAtrapadas>${personasAtrapadas}</typ:personasAtrapadas>\n` +
-        `        <typ:personasHeridas>${personasHeridas}</typ:personasHeridas>\n` +
-        `        <typ:riesgoSeguridad>${riesgoSeguridad}</typ:riesgoSeguridad>\n` +
-        `        <typ:riesgoEstructural>${riesgoEstructural}</typ:riesgoEstructural>\n` +
-        `        <typ:alteracionOrdenPublico>${alteracionOrdenPublico}</typ:alteracionOrdenPublico>\n` +
-        `      </typ:aviso>\n` +
-        `    </ns0:gestionarLlamadaEmergencia>\n` +
-        `  </soap:Body>\n` +
-        `</soap:Envelope>`;
-
       fetch(llamadaEmergencia, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': 'http://www.example.org/ServicioGestionLlamadaEmergencia/gestionarLlamadaEmergencia'
+          'Content-Type': 'application/json'
         },
-        body: xml
+        body: JSON.stringify({
+          telefono,
+          localizacion,
+          descripcion,
+          afectados: afectados ? Number(afectados) : 0,
+          hayFuego: hayFuego === 'true',
+          hayHumo: hayHumo === 'true',
+          personasAtrapadas: personasAtrapadas === 'true',
+          personasHeridas: personasHeridas === 'true',
+          riesgoSeguridad: riesgoSeguridad === 'true',
+          riesgoEstructural: riesgoEstructural === 'true',
+          alteracionOrdenPublico: alteracionOrdenPublico === 'true'
+        })
       })
-      .then(r => r.text())
-      .then(text => {
-        const doc = new DOMParser().parseFromString(text, 'text/xml');
-        const body = doc.querySelector('soap\\:Body, Body');
-        const resp = body?.firstElementChild;
-        const obj = resp ? Object.fromEntries([...resp.children].map(n => [n.localName, n.textContent])) : { raw: text };
-        show(`<pre class="json">${JSON.stringify(obj, null, 2)}</pre>`);
+      .then(r => r.json())
+      .then(data => {
+        show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`);
       })
       .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
     });

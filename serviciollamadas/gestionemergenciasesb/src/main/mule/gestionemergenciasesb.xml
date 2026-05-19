@@ -117,41 +117,99 @@ var incidente = payload.body.consultarResponse.incidente
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<choice doc:name="Choice" doc:id="7a215570-bf13-4504-a93e-68afa3ec9136" >
-			<when expression="#[payload.tipoIncidente.requiereBomberos]" >
-				<http:request method="POST" doc:name="Request" doc:id="b69be68e-568a-4dd7-8b8a-9afa5904f675" config-ref="HTTP_Request_configuration_1" path="/despacho-bomberos" >
-					<http:query-params ><![CDATA[#[%dw 2.0
+		<set-variable variableName="respuestaFinal" value="#[payload]" />
+		<choice doc:name="Choice">
+    <when expression="#[payload.requiereBomberos]">
+
+        <try>
+
+            <http:request
+                method="POST"
+                doc:name="Request"
+                config-ref="HTTP_Request_configuration_1"
+                path="/despacho-bomberos">
+
+                <http:query-params><![CDATA[#[%dw 2.0
 output application/json
 ---
 {
     idIncidente: payload.idIncidente
 }]]]></http:query-params>
-				</http:request>
-			</when>
-		</choice>
-		<choice doc:name="Choice1" doc:id="a8e3af06-db4e-47b7-bbed-3aca81da8baf" >
-			<when expression="#[payload.tipoIncidente.requierePolicia]" >
-				<http:request method="POST" doc:name="Request" doc:id="bf5a1beb-5606-4f70-a8fb-15c014009cd8" config-ref="HTTP_Request_configuration_2" path="/policia" >
-					<http:query-params ><![CDATA[#[%dw 2.0
+
+            </http:request>
+
+            <error-handler>
+                <on-error-continue
+                    enableNotifications="true"
+                    logException="true"/>
+            </error-handler>
+
+        </try>
+
+    </when>
+</choice>
+
+<choice doc:name="Choice1">
+    <when expression="#[payload.requierePolicia]">
+
+        <try>
+
+            <http:request
+                method="POST"
+                doc:name="Request"
+                config-ref="HTTP_Request_configuration_2"
+                path="/policia">
+
+                <http:query-params><![CDATA[#[%dw 2.0
 output application/json
 ---
 {
     idIncidente: payload.idIncidente
 }]]]></http:query-params>
-				</http:request>
-			</when>
-		</choice>
-		<choice doc:name="Choice2" doc:id="360ac34e-ef32-4be1-8c22-b01f690bac30" >
-			<when expression="#[payload.tipoIncidente.requiereSanitarios]" >
-				<http:request method="POST" doc:name="Request" doc:id="1b4fc3dc-c785-4f94-a759-1bbebcfc54f6" config-ref="HTTP_Request_configuration_3" path="/ambulancias" >
-					<http:query-params ><![CDATA[#[%dw 2.0
+
+            </http:request>
+
+            <error-handler>
+                <on-error-continue
+                    enableNotifications="true"
+                    logException="true"/>
+            </error-handler>
+
+        </try>
+
+    </when>
+</choice>
+
+<choice doc:name="Choice2">
+    <when expression="#[payload.requiereSanitarios]">
+
+        <try>
+
+            <http:request
+                method="POST"
+                doc:name="Request"
+                config-ref="HTTP_Request_configuration_3"
+                path="/ambulancias">
+
+                <http:query-params><![CDATA[#[%dw 2.0
 output application/json
 ---
 {
     idIncidente: payload.idIncidente
 }]]]></http:query-params>
-				</http:request>
-			</when>
-		</choice>
+
+            </http:request>
+
+            <error-handler>
+                <on-error-continue
+                    enableNotifications="true"
+                    logException="true"/>
+            </error-handler>
+
+        </try>
+
+    </when>
+</choice>
+		<set-payload value="#[vars.respuestaFinal]" />
 	</flow>
 </mule>
