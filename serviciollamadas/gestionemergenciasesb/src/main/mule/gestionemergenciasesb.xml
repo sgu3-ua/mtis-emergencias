@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8085"/>
+		 <http:listener-interceptors >
+        <http:cors-interceptor allowCredentials="false">
+            <http:origins >
+                <http:origin url="http://localhost:5173" accessControlMaxAge="30000" >
+                    <http:allowed-methods >
+                        <http:method methodName="OPTIONS" />
+                        <http:method methodName="GET" />
+                        <http:method methodName="POST" />
+                        <http:method methodName="PUT" />
+                        <http:method methodName="DELETE" />
+                    </http:allowed-methods>
+                    <http:allowed-headers >
+                        <http:header headerName="Content-Type" />
+                        <http:header headerName="Accept" />
+                    </http:allowed-headers>
+                    <http:expose-headers >
+                        <http:header headerName="Access-Control-Allow-Origin" />
+                        <http:header headerName="Access-Control-Allow-Methods" />
+                        <http:header headerName="Access-Control-Allow-Headers" />
+                    </http:expose-headers>
+                </http:origin>
+
+            </http:origins>
+        </http:cors-interceptor>
+    </http:listener-interceptors>
+    </http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config_1" doc:name="Web Service Consumer Config" doc:id="740c3794-df0a-4bba-8bb2-eeb0232b9cd8" >
+		<wsc:connection wsdlLocation="http://localhost:8080/MTIS-GestionLlamadaEmergencia/services/ServicioGestionLlamadaEmergencia?wsdl" service="ServicioGestionLlamadaEmergencia" port="ServicioGestionLlamadaEmergenciaSOAP" address="http://localhost:8080/MTIS-GestionLlamadaEmergencia/services/ServicioGestionLlamadaEmergencia/" />
+	</wsc:config>
+	<wsc:config name="Web_Service_Consumer_Config_2" doc:name="Web Service Consumer Config" doc:id="1fc0caeb-5d4e-491e-94b2-a389914ecc82" >
+		<wsc:connection wsdlLocation="http://localhost:8080/MTIS-GestionLlamadaEmergencia/services/ServicioIncidente?wsdl" service="ServicioIncidente" port="ServicioIncidenteSOAP" address="http://localhost:8080/MTIS-GestionLlamadaEmergencia/services/ServicioIncidente/" />
+	</wsc:config>
+	<http:request-config name="HTTP_Request_configuration_1" doc:name="HTTP Request configuration" doc:id="6cb880a5-914a-4684-ba6d-ca85f5978e22" >
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_2" doc:name="HTTP Request configuration" doc:id="494ba832-03b0-4aa6-8a0d-fb3c826a1f54" >
+		<http:request-connection host="localhost" port="9092" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_3" doc:name="HTTP Request configuration" doc:id="916787dc-746d-4828-8e75-7d0d894e25f7" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<flow name="gestionemergenciasesbFlow" doc:id="27bdde2f-162e-4ea4-a81b-7173ccc39b2e" >
+		<http:listener doc:name="Listener" doc:id="2a928602-faa5-43d0-85d4-0d3143e6929a" config-ref="api-httpListenerConfig" path="/llamadas"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e9ebc15e-3f03-494c-809a-1bed994b0984" />
+		<ee:transform doc:name="Transform Message1" doc:id="46ec773d-ef6a-4965-a388-156a3c2a190b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+
+ns tns http://www.example.org/ServicioGestionLlamadaEmergencia/
+ns q1 http://www.example.org/tipos
+
+---
+{
+    tns#gestionarLlamadaEmergencia: {
+        aviso: {
+        	q1#idAviso: null,
+            q1#telefono: payload.telefono,
+            q1#localizacion: payload.localizacion,
+            q1#descripcion: payload.descripcion,
+            q1#afectados: payload.afectados,
+            q1#hayFuego: payload.hayFuego,
+            q1#hayHumo: payload.hayHumo,
+            q1#personasAtrapadas: payload.personasAtrapadas,
+            q1#personasHeridas: payload.personasHeridas,
+            q1#riesgoSeguridad: payload.riesgoSeguridad,
+            q1#riesgoEstructural: payload.riesgoEstructural,
+            q1#alteracionOrdenPublico: payload.alteracionOrdenPublico
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger1" doc:id="a5ca05d5-11bf-43d0-90f5-65f28c37b1d0" message="#[payload]" />
+		<wsc:consume operation="gestionarLlamadaEmergencia" doc:name="Consumer1" doc:id="baf4ef01-86d7-45aa-980d-1c343545989f" config-ref="Web_Service_Consumer_Config_1"/>
+		<ee:transform doc:name="Transform Message2" doc:id="196c5631-53ac-4537-8db1-9ef8e23b989b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+    consultar: {
+        idIncidente: payload.body.gestionarLlamadaEmergenciaResponse.idIncidente
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger2" doc:id="ee39e21d-60b4-4875-bf84-3983fbeb54cc" message="#[payload]" />
+		<wsc:consume operation="consultar" doc:name="Consumer2" doc:id="7f22b327-21c4-45e5-b7fb-299bd8ef441e" config-ref="Web_Service_Consumer_Config_2"/>
+		<logger level="INFO" doc:name="Logger" doc:id="065d659c-3184-4fcc-803a-5effb7c6dc8d" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message3" doc:id="64bd97b4-21ef-4db5-aa66-dd32d70f9cbf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var incidente = payload.body.consultarResponse.incidente
+
+---
+{
+    idIncidente: incidente.idIncidente,
+    descripcion: incidente.descripcion,
+    localizacion: incidente.localizacion,
+    urgencia: incidente.nivelUrgencia,
+    requiereBomberos: incidente.tipoIncidente.requiereBomberos,
+    requierePolicia: incidente.tipoIncidente.requierePolicia,
+    requiereSanitarios: incidente.tipoIncidente.requiereSanitarios
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="7a215570-bf13-4504-a93e-68afa3ec9136" >
+			<when expression="#[payload.tipoIncidente.requiereBomberos]" >
+				<http:request method="POST" doc:name="Request" doc:id="b69be68e-568a-4dd7-8b8a-9afa5904f675" config-ref="HTTP_Request_configuration_1" path="/despacho-bomberos" >
+					<http:query-params ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+    idIncidente: payload.idIncidente
+}]]]></http:query-params>
+				</http:request>
+			</when>
+		</choice>
+		<choice doc:name="Choice1" doc:id="a8e3af06-db4e-47b7-bbed-3aca81da8baf" >
+			<when expression="#[payload.tipoIncidente.requierePolicia]" >
+				<http:request method="POST" doc:name="Request" doc:id="bf5a1beb-5606-4f70-a8fb-15c014009cd8" config-ref="HTTP_Request_configuration_2" path="/policia" >
+					<http:query-params ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+    idIncidente: payload.idIncidente
+}]]]></http:query-params>
+				</http:request>
+			</when>
+		</choice>
+		<choice doc:name="Choice2" doc:id="360ac34e-ef32-4be1-8c22-b01f690bac30" >
+			<when expression="#[payload.tipoIncidente.requiereSanitarios]" >
+				<http:request method="POST" doc:name="Request" doc:id="1b4fc3dc-c785-4f94-a759-1bbebcfc54f6" config-ref="HTTP_Request_configuration_3" path="/ambulancias" >
+					<http:query-params ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+    idIncidente: payload.idIncidente
+}]]]></http:query-params>
+				</http:request>
+			</when>
+		</choice>
+	</flow>
+</mule>

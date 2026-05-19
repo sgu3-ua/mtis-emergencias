@@ -33,6 +33,7 @@ public class ServicioAvisoSkeleton{
             	CrearResponse response = new CrearResponse();
                 Connection conn = null;
                 PreparedStatement stmt = null;
+                ResultSet keys = null;
                 
                 try {
                     Aviso aviso = crear.getAviso();
@@ -73,13 +74,12 @@ public class ServicioAvisoSkeleton{
                     stmt.executeUpdate();
                     
                     // Obtener el id del aviso recien creado para poder devolverlo
-                    ResultSet keys = stmt.getGeneratedKeys();
+                    keys = stmt.getGeneratedKeys();
                     if (keys.next()) {
                     	response.setIdAviso(keys.getInt(1));
                     }
 
                     response.setOk(true);
-                    response.setError("");
                     
                 } catch (Exception e) {
                     response.setOk(false);
@@ -87,6 +87,10 @@ public class ServicioAvisoSkeleton{
                     e.printStackTrace();
                     
                 } finally {
+                	try {
+                		if (keys != null)
+                	        keys.close();
+                    } catch (Exception e) {}
                     try {
                         if (stmt != null)
                             stmt.close();

@@ -22,7 +22,7 @@ Luego si no se realizan cambios
 docker-compose up -d
 ```
 
-Cliente (http:/localhost:5173)
+Cliente (http://localhost:5173)
 ```
 cd client
 npm install

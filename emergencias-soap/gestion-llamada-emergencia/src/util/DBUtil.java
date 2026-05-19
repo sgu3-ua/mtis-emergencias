@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 
 public class DBUtil {
     private static final String URL =
-    		  "jdbc:mysql://localhost:3306/sistema_emergencias?autoReconnect=true&useSSL=false&serverTimezone=UTC";
+    		  "jdbc:mysql://localhost:3306/sistema_emergencias?autoReconnect=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
     private static final String PASS = "password";
 

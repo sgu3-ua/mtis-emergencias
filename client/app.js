@@ -11,13 +11,22 @@ document.addEventListener('DOMContentLoaded', function () {
   const emergenciaPolicia = `${baseIP}:9092/policia`;
   const emergenciaBomberos = `${baseIP}:8082/api/despachos-bomberos`;
 
-  const llamadaEmergencia = `${baseIP}:8095/llamadas`;
-  const cierreIncidente = `${baseIP}:8080/cierreIncidente`;
+  const llamadaEmergencia = `/llamadas`; // Soap
+  const cierreIncidente = '/cerrarIncidente'; // Soap
 
   function show(msgHtml){ if (result) result.innerHTML = msgHtml; }
 
   function ApiNotAvailable() {
     return `<p class="muted">Error: la API no está disponible. Asegúrate de que el cliente JS se ha empaquetado correctamente instala cliente-js como node-module.</p>`;
+  }
+  function escapeXml(unsafe) {
+    if (unsafe === undefined || unsafe === null) return '';
+    return String(unsafe)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
   }
   // region Hospital
   const hospital = document.getElementById('iniciarHospital');
@@ -49,16 +58,57 @@ document.addEventListener('DOMContentLoaded', function () {
   if (llamada) {
     llamada.addEventListener('click', function (e) {
       e.preventDefault();
-      const xsd = document.getElementById('xsd') ? document.getElementById('xsd').value : undefined;
+      const telefono = document.getElementById('telefono') ? document.getElementById('telefono').value : '';
+      const localizacion = document.getElementById('localizacion') ? document.getElementById('localizacion').value : '';
+      const descripcion = document.getElementById('descripcion') ? document.getElementById('descripcion').value : '';
+      const afectados = document.getElementById('afectados') ? document.getElementById('afectados').value : '';
+      const hayFuego = document.getElementById('hayFuego') ? (document.getElementById('hayFuego').checked ? 'true' : 'false') : 'false';
+      const hayHumo = document.getElementById('hayHumo') ? (document.getElementById('hayHumo').checked ? 'true' : 'false') : 'false';
+      const personasAtrapadas = document.getElementById('personasAtrapadas') ? (document.getElementById('personasAtrapadas').checked ? 'true' : 'false') : 'false';
+      const personasHeridas = document.getElementById('personasHeridas') ? (document.getElementById('personasHeridas').checked ? 'true' : 'false') : 'false';
+      const riesgoSeguridad = document.getElementById('riesgoSeguridad') ? (document.getElementById('riesgoSeguridad').checked ? 'true' : 'false') : 'false';
+      const riesgoEstructural = document.getElementById('riesgoEstructural') ? (document.getElementById('riesgoEstructural').checked ? 'true' : 'false') : 'false';
+      const alteracionOrdenPublico = document.getElementById('alteracionOrdenPublico') ? (document.getElementById('alteracionOrdenPublico').checked ? 'true' : 'false') : 'false';
+
       show('<p class="muted">Solicitando atención...</p>');
-      //Es SOAP por tanto asi no sera
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+        `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns0="http://www.example.org/ServicioGestionLlamadaEmergencia/" xmlns:typ="http://www.example.org/tipos">\n` +
+        `  <soap:Body>\n` +
+        `    <ns0:gestionarLlamadaEmergencia>\n` +
+        `      <typ:aviso>\n` +
+        `        <typ:telefono>${escapeXml(telefono)}</typ:telefono>\n` +
+        `        <typ:localizacion>${escapeXml(localizacion)}</typ:localizacion>\n` +
+        `        <typ:descripcion>${escapeXml(descripcion)}</typ:descripcion>\n` +
+        (afectados !== '' ? `        <typ:afectados>${escapeXml(afectados)}</typ:afectados>\n` : '') +
+        `        <typ:hayFuego>${hayFuego}</typ:hayFuego>\n` +
+        `        <typ:hayHumo>${hayHumo}</typ:hayHumo>\n` +
+        `        <typ:personasAtrapadas>${personasAtrapadas}</typ:personasAtrapadas>\n` +
+        `        <typ:personasHeridas>${personasHeridas}</typ:personasHeridas>\n` +
+        `        <typ:riesgoSeguridad>${riesgoSeguridad}</typ:riesgoSeguridad>\n` +
+        `        <typ:riesgoEstructural>${riesgoEstructural}</typ:riesgoEstructural>\n` +
+        `        <typ:alteracionOrdenPublico>${alteracionOrdenPublico}</typ:alteracionOrdenPublico>\n` +
+        `      </typ:aviso>\n` +
+        `    </ns0:gestionarLlamadaEmergencia>\n` +
+        `  </soap:Body>\n` +
+        `</soap:Envelope>`;
+
       fetch(llamadaEmergencia, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xsd })
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'http://www.example.org/ServicioGestionLlamadaEmergencia/gestionarLlamadaEmergencia'
+        },
+        body: xml
       })
-      .then(r => r.json())
-      .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
+      .then(r => r.text())
+      .then(text => {
+        const doc = new DOMParser().parseFromString(text, 'text/xml');
+        const body = doc.querySelector('soap\\:Body, Body');
+        const resp = body?.firstElementChild;
+        const obj = resp ? Object.fromEntries([...resp.children].map(n => [n.localName, n.textContent])) : { raw: text };
+        show(`<pre class="json">${JSON.stringify(obj, null, 2)}</pre>`);
+      })
       .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
     });
   }
@@ -77,15 +127,34 @@ document.addEventListener('DOMContentLoaded', function () {
   if (cierre) {
     cierre.addEventListener('click', function (e) {
       e.preventDefault();
-      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      const incidenteid = document.getElementById('incidenteid')?.value;
       show('<p class="muted">Cerrando incidente...</p>');
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+                    <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns0="http://www.example.org/ServicioProcesoCierreIncidente/">
+                      <soap:Body>
+                        <ns0:Cerrar>
+                          <ns0:incidenteId>${incidenteid}</ns0:incidenteId>
+                        </ns0:Cerrar>
+                      </soap:Body>
+                    </soap:Envelope>`;
+
       fetch(cierreIncidente, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incidenteid })
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'http://www.example.org/ServicioProcesoCierreIncidente/Cerrar'
+        },
+        body: xml
       })
-      .then(r => r.json())
-      .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
+      .then(r => r.text())
+      .then(text => {
+        const doc = new DOMParser().parseFromString(text, 'text/xml');
+        const body = doc.querySelector('soap\\:Body, Body');
+        const resp = body?.firstElementChild;
+        const obj = resp ? Object.fromEntries([...resp.children].map(n => [n.localName, n.textContent])) : { raw: text };
+        show(`<pre class="json">${JSON.stringify(obj, null, 2)}</pre>`);
+      })
       .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
     });
   }
