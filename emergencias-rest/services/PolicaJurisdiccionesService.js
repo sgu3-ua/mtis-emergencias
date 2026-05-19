@@ -32,6 +32,7 @@ const jurisdiccionesGET = ({ latitud, longitud }) => new Promise(
 
       const comisaria = rows[0];
 
+      // Devolvemos información de ejemplo para el flujo
       resolve(Service.successResponse({
         id: comisaria.id,
         nombre: comisaria.nombre,
