@@ -37,7 +37,7 @@ const jurisdiccionesGET = ({ latitud, longitud }) => new Promise(
         id: comisaria.id,
         nombre: comisaria.nombre,
         tipoZona: 'URBANA',
-        cuerpoCompetente: 'POLICIA_LOCAL',
+        cuerpoCompetente: 'LOCAL',
       }));
     } catch (e) {
       reject(Service.rejectResponse(
