@@ -1,4 +1,5 @@
 emergencias-rest/node_modules/
+client/node_modules/
 emergencias-rest/dist/
 *.log
 .env
