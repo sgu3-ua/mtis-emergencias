@@ -1,34 +1,28 @@
 window.ServiciosEdificioInteligente = require('servicios_edificio_inteligente');
 document.addEventListener('DOMContentLoaded', function () {
-  const Servicios = window.ServiciosEdificioInteligente || window.servicios_edificio_inteligente;
-  const api = Servicios ? new Servicios.DispositivosApi() : null;
-  const apiNiveles = Servicios ? new Servicios.NivelesApi() : null;
-  const apiSalas = Servicios ? new Servicios.SalasApi() : null;
-  const apiNotificaciones = Servicios ? new Servicios.NotificacionesApi() : null;
 
   const fetchForm = document.getElementById('fetchForm');
   const manageForm = document.getElementById('manageForm');
   const result = document.getElementById('result');
 
   const emergenciaHospital = 'http://localhost:8081/emergenciaHospital';
+  const emergenciaPolicia = 'http://localhost:9092/policia';
+  const emergenciaBomberos = 'http://localhost:8082/bomberos';
+
+  const llamadaEmergencia = 'http://localhost:8080/llamadaEmergencia';
+  const cierreIncidente = 'http://localhost:8080/cierreIncidente';
 
   function show(msgHtml){ if (result) result.innerHTML = msgHtml; }
 
   function ApiNotAvailable() {
     return `<p class="muted">Error: la API no está disponible. Asegúrate de que el cliente JS se ha empaquetado correctamente instala cliente-js como node-module.</p>`;
   }
-
-  if (!api) {
-    if (result) {
-      result.innerHTML = ApiNotAvailable();
-    }
-  }
-
+  // region Hospital
   const hospital = document.getElementById('iniciarHospital');
   if (hospital) {
     hospital.addEventListener('click', function (e) {
       e.preventDefault();
-      const   incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      const  incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
       const lat = document.getElementById('lat') ? Number(document.getElementById('lat').value) : undefined;
       const lon = document.getElementById('lon') ? Number(document.getElementById('lon').value) : undefined;
       const nombre = document.getElementById('nombre') ? document.getElementById('nombre').value : undefined;
@@ -48,5 +42,107 @@ document.addEventListener('DOMContentLoaded', function () {
       .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
     });
   }
+  // region Llamada emergencia
+  const llamada = document.getElementById('llamadaEmergencia');
+  if (llamada) {
+    llamada.addEventListener('click', function (e) {
+      e.preventDefault();
+      show('<p class="muted">Solicitando atención...</p>');
+      //Es SOAP por tanto asi no sera
+      fetch(llamadaEmergencia, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ incidenteid })
+      })
+      .then(r => r.json())
+      .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
+      .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
+    });
+  }
+
+
+
+
+
+
+
+
+
+
+  // region Cierre incidente
+  const cierre = document.getElementById('cerrarIncidente');
+  if (cierre) {
+    cierre.addEventListener('click', function (e) {
+      e.preventDefault();
+      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      show('<p class="muted">Cerrando incidente...</p>');
+      fetch(cierreIncidente, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ incidenteid })
+      })
+      .then(r => r.json())
+      .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
+      .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
+    });
+  }
+
+
+
+
+
+
+
+
+
+  // region Policia
+  const policia = document.getElementById('llamadaPolicia');
+  if (policia) {
+    policia.addEventListener('click', function (e) {
+      e.preventDefault();
+      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      show('<p class="muted">Solicitando atención policial...</p>');
+      fetch(emergenciaPolicia, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ incidenteid })
+      })
+      .then(r => r.json())
+      .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
+      .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
+    });
+  }
+
+
+
+
+
+
+
+
+  // region Bomberos
+  const bomberos = document.getElementById('llamadaBomberos');
+  if (bomberos) {
+    bomberos.addEventListener('click', function (e) {
+      e.preventDefault();
+      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      show('<p class="muted">Solicitando atención de bomberos...</p>');
+      fetch(emergenciaBomberos, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ incidenteid })
+      })
+      .then(r => r.json())
+      .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
+      .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
+    });
+  }
+
+
+
+
+
+
+
 
 });

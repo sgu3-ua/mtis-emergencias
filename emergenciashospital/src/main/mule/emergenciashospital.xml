@@ -8,6 +8,31 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8db61074-2af9-422d-9c2a-b83316642318">
 		<http:listener-connection host="0.0.0.0" port="8081" />
+		 <http:listener-interceptors >
+        <http:cors-interceptor allowCredentials="false">
+            <http:origins >
+                <http:origin url="http://localhost:5173" accessControlMaxAge="30000" >
+                    <http:allowed-methods >
+                        <http:method methodName="OPTIONS" />
+                        <http:method methodName="GET" />
+                        <http:method methodName="POST" />
+                        <http:method methodName="PUT" />
+                        <http:method methodName="DELETE" />
+                    </http:allowed-methods>
+                    <http:allowed-headers >
+                        <http:header headerName="Content-Type" />
+                        <http:header headerName="Accept" />
+                    </http:allowed-headers>
+                    <http:expose-headers >
+                        <http:header headerName="Access-Control-Allow-Origin" />
+                        <http:header headerName="Access-Control-Allow-Methods" />
+                        <http:header headerName="Access-Control-Allow-Headers" />
+                    </http:expose-headers>
+                </http:origin>
+
+            </http:origins>
+        </http:cors-interceptor>
+    </http:listener-interceptors>
 	</http:listener-config>
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="02dfd625-1145-485b-bade-928cbdd684f9" >
 		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="sistema_emergencias" />
