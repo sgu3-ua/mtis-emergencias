@@ -106,15 +106,41 @@ const registroIndicentePOST = ({ body, paciente, recursos, sanitarios, hospital 
             reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
             return;
           }
-        } else if (typeof pacienteObj.id === 'number' && pacienteObj.id > 0) {
-          pacienteId = pacienteObj.id;
-          // Verificar que el paciente existe          
-          const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
-          if (!pacienteExists || pacienteExists.length === 0) {
-            reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
-            return;
+        } else if (typeof pacienteObj.idPaciente === 'string' && pacienteObj.idPaciente.trim().length > 0) {
+          // Si viene un idPaciente como string, intentar convertirlo a número
+          const parsedId = parseInt(pacienteObj.idPaciente, 10);
+          if (!Number.isNaN(parsedId) && parsedId > 0) {
+            pacienteId = parsedId;
+            const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+            if (!pacienteExists || pacienteExists.length === 0) {
+              reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+              return;
+              }
+            }
+          } else if (typeof pacienteObj === 'string' && pacienteObj.trim().length > 0) {
+            // Si viene un string simple, intentar convertirlo a número
+            const parsedId = parseInt(pacienteObj.trim(), 10);
+            if (!Number.isNaN(parsedId) && parsedId > 0) {
+              pacienteId = parsedId;
+              const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+              if (!pacienteExists || pacienteExists.length === 0) {
+                reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+                return;
+              }
+            } else {
+              reject(Service.rejectResponse('Paciente inválido. Se esperaba un objeto o un ID numérico válido.', 400));
+              return;
+            }
           }
-        } else {
+          else if (typeof pacienteObj === 'number' && pacienteObj > 0) {
+            pacienteId = pacienteObj;
+            const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+            if (!pacienteExists || pacienteExists.length === 0) {
+              reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+              return;
+            }
+          }
+         else {
           const nombre = pacienteObj.nombre;
           const fechaNacimiento = pacienteObj.fechaNacimiento ? new Date(pacienteObj.fechaNacimiento).toISOString().slice(0, 10) : null;
           const sexo = pacienteObj.sexo;
