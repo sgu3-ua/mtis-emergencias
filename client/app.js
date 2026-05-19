@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const emergenciaHospital = `${baseIP}:8081/emergenciaHospital`;
   const emergenciaPolicia = `${baseIP}:9092/policia`;
-  const emergenciaBomberos = `${baseIP}:8082/bomberos`;
+  const emergenciaBomberos = `${baseIP}:8082/despachos-bomberos`;
 
   const llamadaEmergencia = `${baseIP}:8080/llamadaEmergencia`;
   const cierreIncidente = `${baseIP}:8080/cierreIncidente`;
@@ -127,12 +127,15 @@ document.addEventListener('DOMContentLoaded', function () {
   if (bomberos) {
     bomberos.addEventListener('click', function (e) {
       e.preventDefault();
-      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      const idIncidente = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      const gravedad = document.getElementById('gravedad') ? document.getElementById('gravedad').value : undefined;
+      const vehiculosRequeridos = document.getElementById('vehiculosRequeridos') ? Number(document.getElementById('vehiculosRequeridos').value) : undefined;
+      
       show('<p class="muted">Solicitando atención de bomberos...</p>');
       fetch(emergenciaBomberos, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incidenteid })
+        body: JSON.stringify({ idIncidente, gravedad, vehiculosRequeridos })
       })
       .then(r => r.json())
       .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
