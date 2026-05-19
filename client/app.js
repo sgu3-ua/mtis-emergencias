@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const emergenciaBomberos = `${baseIP}:8082/despachos-bomberos`;
 
   const llamadaEmergencia = `${baseIP}:8095/llamadas`;
-  const cierreIncidente = `${baseIP}:8080/cierreIncidente`;
+  const cierreIncidente = '/cerrarIncidente';
 
   function show(msgHtml){ if (result) result.innerHTML = msgHtml; }
 
@@ -77,15 +77,34 @@ document.addEventListener('DOMContentLoaded', function () {
   if (cierre) {
     cierre.addEventListener('click', function (e) {
       e.preventDefault();
-      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      const incidenteid = document.getElementById('incidenteid')?.value;
       show('<p class="muted">Cerrando incidente...</p>');
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+                    <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns0="http://www.example.org/ServicioProcesoCierreIncidente/">
+                      <soap:Body>
+                        <ns0:Cerrar>
+                          <ns0:incidenteId>${incidenteid}</ns0:incidenteId>
+                        </ns0:Cerrar>
+                      </soap:Body>
+                    </soap:Envelope>`;
+
       fetch(cierreIncidente, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incidenteid })
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'http://www.example.org/ServicioProcesoCierreIncidente/Cerrar'
+        },
+        body: xml
       })
-      .then(r => r.json())
-      .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
+      .then(r => r.text())
+      .then(text => {
+        const doc = new DOMParser().parseFromString(text, 'text/xml');
+        const body = doc.querySelector('soap\\:Body, Body');
+        const resp = body?.firstElementChild;
+        const obj = resp ? Object.fromEntries([...resp.children].map(n => [n.localName, n.textContent])) : { raw: text };
+        show(`<pre class="json">${JSON.stringify(obj, null, 2)}</pre>`);
+      })
       .catch(err => show(`<p class="muted">Error: ${err.message}</p>`));
     });
   }
