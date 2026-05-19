@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const emergenciaPolicia = `${baseIP}:9092/policia`;
   const emergenciaBomberos = `${baseIP}:8082/despachos-bomberos`;
 
-  const llamadaEmergencia = `${baseIP}:8080/llamadaEmergencia`;
+  const llamadaEmergencia = `${baseIP}:8095/llamadas`;
   const cierreIncidente = `${baseIP}:8080/cierreIncidente`;
 
   function show(msgHtml){ if (result) result.innerHTML = msgHtml; }
@@ -49,12 +49,13 @@ document.addEventListener('DOMContentLoaded', function () {
   if (llamada) {
     llamada.addEventListener('click', function (e) {
       e.preventDefault();
+      const xsd = document.getElementById('xsd') ? document.getElementById('xsd').value : undefined;
       show('<p class="muted">Solicitando atención...</p>');
       //Es SOAP por tanto asi no sera
       fetch(llamadaEmergencia, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incidenteid })
+        body: JSON.stringify({ xsd })
       })
       .then(r => r.json())
       .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
