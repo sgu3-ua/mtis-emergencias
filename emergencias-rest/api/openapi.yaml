@@ -175,6 +175,48 @@ paths:
       tags:
       - Incidentes
       x-eov-operation-handler: controllers/IncidentesController
+  /incidentes/{id}/gravedad:
+    get:
+      description: Devuelve la gravedad almacenada del incidente para usarla en la
+        orquestación policial.
+      operationId: incidentesIdGravedadGET
+      parameters:
+      - description: ID del incidente
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  gravedad:
+                    type: string
+          description: Gravedad del incidente recuperada correctamente
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_jurisdicciones_get_404_response"
+          description: Recurso no encontrado
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_parques__id__flota_get_400_response"
+          description: Petición inválida o parámetros incorrectos
+      summary: Consultar gravedad del incidente
+      tags:
+      - Incidentes
+      x-eov-operation-handler: controllers/IncidentesController
   /despachos-bomberos:
     post:
       description: "Actúa como el servicio organizador. Inicia la solicitud, cálculo\

@@ -61,6 +61,42 @@ const incidentesIdEstadoPUT = ({ id, body }) => new Promise(
     }
   },
 );
+
+/**
+* Consultar gravedad del incidente
+* Devuelve la gravedad almacenada para un incidente ya registrado.
+*
+* id Integer ID del incidente
+* no response value expected for this operation
+* */
+const incidentesIdGravedadGET = ({ id }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      if (typeof id !== 'number' || Number.isNaN(id)) {
+        reject(Service.rejectResponse('Petición inválida o parámetros incorrectos', 400));
+        return;
+      }
+
+      const incidenteRows = await db.query('SELECT id, urgencia FROM incidente WHERE id = ?', [id]);
+      if (!incidenteRows || incidenteRows.length === 0) {
+        reject(Service.rejectResponse('Recurso no encontrado', 404));
+        return;
+      }
+
+      const incidente = incidenteRows[0];
+
+      resolve(Service.successResponse({
+        id: incidente.id,
+        gravedad: incidente.urgencia,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Database error',
+        e.status || 500,
+      ));
+    }
+  },
+);
 /**
 * Guardar registro del incidente
 * Guarda un registro del incidente con todos sus datos, además de relacionarlo con el registro de la llamada o mensajes recibidos.
@@ -226,5 +262,6 @@ const registroIndicentePOST = ({ body, paciente, recursos, sanitarios, hospital 
 
 module.exports = {
   incidentesIdEstadoPUT,
+  incidentesIdGravedadGET,
   registroIndicentePOST,
 };
