@@ -7,6 +7,10 @@ export default defineConfig({
         target: 'http://localhost:9090',
         changeOrigin: true,
       },
-    },
+      '/llamadas': {
+        target: 'http://localhost:8095',
+        changeOrigin: true
+      }
+    }
   },
 });
