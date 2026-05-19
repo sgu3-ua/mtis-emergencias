@@ -24,7 +24,6 @@
       <xsd:element name="gestionarLlamadaEmergencia">
       	<xsd:complexType>
       		<xsd:sequence>
-
       			<xsd:element name="aviso" type="Q1:Aviso"
       				maxOccurs="1" minOccurs="1">
       			</xsd:element>

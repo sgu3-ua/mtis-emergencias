@@ -42,7 +42,7 @@ public class ServicioGestionLlamadaEmergenciaSkeleton{
         	
         	if (!avisoResponse.getOk()) {
         		resp.setOk(false);
-        		resp.setError("Error al crear el aviso");
+        		resp.setError(avisoResponse.getError());
         		return resp;
         	}
         	
