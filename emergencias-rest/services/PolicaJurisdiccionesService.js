@@ -13,6 +13,13 @@ const { query } = require('../repository/db');
 const jurisdiccionesGET = ({ latitud, longitud }) => new Promise(
   async (resolve, reject) => {
     try {
+      // YAML requiere latitud y longitud — validamos tipos. Con el esquema de BD actual
+      // no hay datos geoespaciales, así que devolvemos la primera comisaría existente.
+      if (typeof latitud !== 'number' || typeof longitud !== 'number') {
+        reject(Service.rejectResponse('Parámetros latitud y longitud obligatorios y de tipo numérico', 400));
+        return;
+      }
+
       const rows = await query(
         'SELECT id, nombre FROM comisaria ORDER BY id ASC LIMIT 1',
         [],
