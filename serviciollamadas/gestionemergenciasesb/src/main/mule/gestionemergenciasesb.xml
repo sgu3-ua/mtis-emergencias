@@ -8,6 +8,31 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
 	<http:listener-config name="api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8085"/>
+		 <http:listener-interceptors >
+        <http:cors-interceptor allowCredentials="false">
+            <http:origins >
+                <http:origin url="http://localhost:5173" accessControlMaxAge="30000" >
+                    <http:allowed-methods >
+                        <http:method methodName="OPTIONS" />
+                        <http:method methodName="GET" />
+                        <http:method methodName="POST" />
+                        <http:method methodName="PUT" />
+                        <http:method methodName="DELETE" />
+                    </http:allowed-methods>
+                    <http:allowed-headers >
+                        <http:header headerName="Content-Type" />
+                        <http:header headerName="Accept" />
+                    </http:allowed-headers>
+                    <http:expose-headers >
+                        <http:header headerName="Access-Control-Allow-Origin" />
+                        <http:header headerName="Access-Control-Allow-Methods" />
+                        <http:header headerName="Access-Control-Allow-Headers" />
+                    </http:expose-headers>
+                </http:origin>
+
+            </http:origins>
+        </http:cors-interceptor>
+    </http:listener-interceptors>
     </http:listener-config>
 	<wsc:config name="Web_Service_Consumer_Config_1" doc:name="Web Service Consumer Config" doc:id="740c3794-df0a-4bba-8bb2-eeb0232b9cd8" >
 		<wsc:connection wsdlLocation="http://localhost:8080/MTIS-GestionLlamadaEmergencia/services/ServicioGestionLlamadaEmergencia?wsdl" service="ServicioGestionLlamadaEmergencia" port="ServicioGestionLlamadaEmergenciaSOAP" address="http://localhost:8080/MTIS-GestionLlamadaEmergencia/services/ServicioGestionLlamadaEmergencia/" />
