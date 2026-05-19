@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.example.org/tipos" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.example.org/tipos">
+    <complexType name="Aviso">
+        <sequence>
+            <element minOccurs="0" name="idAviso" type="int"/>
+            <element name="telefono" type="string"/>
+            <element name="localizacion" type="string"/>
+            <element name="descripcion" type="string"/>
+            <element minOccurs="0" name="afectados" type="integer"/>
+            <element name="hayFuego" type="boolean"/>
+            <element name="hayHumo" type="boolean"/>
+            <element name="personasAtrapadas" type="boolean"/>
+            <element name="personasHeridas" type="boolean"/>
+            <element name="riesgoSeguridad" type="boolean"/>
+            <element name="riesgoEstructural" type="boolean"/>
+            <element name="alteracionOrdenPublico" type="boolean"/>
+        </sequence>
+    </complexType>
+    <complexType name="TipoIncidente">
+        <sequence>
+            <element name="requiereBomberos" type="boolean"/>
+            <element name="requierePolicia" type="boolean"/>
+            <element name="requiereSanitarios" type="boolean"/>
+        </sequence>
+    </complexType>
+    <simpleType name="NivelUrgencia">
+        <restriction base="string">
+            <enumeration value="BAJA"/>
+            <enumeration value="MEDIA"/>
+            <enumeration value="ALTA"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="EstadoIncidente">
+        <restriction base="string">
+            <enumeration value="ACTIVO"/>
+            <enumeration value="RESUELTO"/>
+        </restriction>
+    </simpleType>
+    <complexType name="Incidente">
+        <sequence>
+            <element name="idIncidente" type="int"/>
+            <element maxOccurs="unbounded" name="avisos" type="tns:Aviso"/>
+            <element name="tipoIncidente" type="tns:TipoIncidente"/>
+            <element name="nivelUrgencia" type="tns:NivelUrgencia"/>
+            <element name="descripcion" type="string"/>
+            <element name="localizacion" type="string"/>
+            <element name="estado" type="tns:EstadoIncidente"/>
+        </sequence>
+    </complexType>
+</schema>
