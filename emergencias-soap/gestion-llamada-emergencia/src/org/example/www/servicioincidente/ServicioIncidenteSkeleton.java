@@ -142,6 +142,7 @@ public class ServicioIncidenteSkeleton{
 
             Connection conn = null;
             PreparedStatement stmt = null;
+            ResultSet keys = null;
 
             try {
                 Incidente incidente = crear.getIncidente();
@@ -180,7 +181,7 @@ public class ServicioIncidenteSkeleton{
                 stmt.executeUpdate();
                 
                 // Obtener el id del incidente recien creado para poder devolverlo
-                ResultSet keys = stmt.getGeneratedKeys();
+                keys = stmt.getGeneratedKeys();
 
                 if (keys.next()) {
                 	response.setIdIncidente(keys.getInt(1));
@@ -194,6 +195,10 @@ public class ServicioIncidenteSkeleton{
                 e.printStackTrace();
 
             } finally {
+            	try {
+            		if (keys != null)
+            	        keys.close();
+                } catch (Exception e) {}
                 try {
                     if (stmt != null)
                         stmt.close();
@@ -372,6 +377,8 @@ public class ServicioIncidenteSkeleton{
             Connection conn = null;
             PreparedStatement stmt = null;
             ResultSet rs = null;
+            PreparedStatement stmtAvisos = null;
+            ResultSet rsAvisos = null;
 
             try {
                 conn = DBUtil.getConnection();
@@ -419,8 +426,7 @@ public class ServicioIncidenteSkeleton{
                     // Cargar avisos asociados
                     ArrayList<Aviso> avisos = new ArrayList<Aviso>();
 
-                    PreparedStatement stmtAvisos =
-                            conn.prepareStatement(
+                    stmtAvisos = conn.prepareStatement(
 
                             "SELECT a.* " +
                             "FROM aviso a " +
@@ -431,8 +437,7 @@ public class ServicioIncidenteSkeleton{
                     stmtAvisos.setInt(1,
                             rs.getInt("id"));
 
-                    ResultSet rsAvisos =
-                            stmtAvisos.executeQuery();
+                    rsAvisos = stmtAvisos.executeQuery();
 
                     while (rsAvisos.next()) {
                         Aviso aviso = new Aviso();
@@ -501,16 +506,22 @@ public class ServicioIncidenteSkeleton{
                 e.printStackTrace();
 
             } finally {
+            	try{
+            		if (rsAvisos != null)
+            	        rsAvisos.close();
+            	} catch (Exception e) {}
+            	try  {
+            		if (stmtAvisos != null)
+            	        stmtAvisos.close();
+            	} catch (Exception e) {}
                 try {
                     if (rs != null)
                         rs.close();
                 } catch (Exception e) {}
-
                 try {
                     if (stmt != null)
                         stmt.close();
                 } catch (Exception e) {}
-
                 try {
                     if (conn != null)
                         conn.close();
