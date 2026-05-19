@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- This file was auto-generated from WSDL --><!-- by the Apache Axis2 version: 1.6.3  Built on : Jun 27, 2015 (11:17:49 BST) --><serviceGroup>
+    <service name="ServicioIncidente">
+        <messageReceivers>
+            <messageReceiver mep="http://www.w3.org/ns/wsdl/in-out" class="org.example.www.servicioincidente.ServicioIncidenteMessageReceiverInOut"/>
+        </messageReceivers>
+        <parameter name="ServiceClass">org.example.www.servicioincidente.ServicioIncidenteSkeleton</parameter>
+        <parameter name="useOriginalwsdl">true</parameter>
+        <parameter name="modifyUserWSDLPortAddress">true</parameter>
+        <operation name="actualizar" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioIncidente/">
+            <actionMapping>http://www.example.org/ServicioIncidente/actualizar</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioIncidente/ServicioIncidente/actualizarResponse</outputActionMapping>
+        </operation>
+        <operation name="crear" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioIncidente/">
+            <actionMapping>http://www.example.org/ServicioIncidente/crear</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioIncidente/ServicioIncidente/crearResponse</outputActionMapping>
+        </operation>
+        <operation name="crearIncidenteOasociarAviso" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioIncidente/">
+            <actionMapping>http://www.example.org/ServicioIncidente/crearIncidenteOasociarAviso</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioIncidente/ServicioIncidente/crearIncidenteOasociarAvisoResponse</outputActionMapping>
+        </operation>
+        <operation name="consultar" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioIncidente/">
+            <actionMapping>http://www.example.org/ServicioIncidente/consultar</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioIncidente/ServicioIncidente/consultarResponse</outputActionMapping>
+        </operation>
+        <operation name="asociarAviso" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioIncidente/">
+            <actionMapping>http://www.example.org/ServicioIncidente/asociarAviso</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioIncidente/ServicioIncidente/asociarAvisoResponse</outputActionMapping>
+        </operation>
+    </service>
+</serviceGroup>

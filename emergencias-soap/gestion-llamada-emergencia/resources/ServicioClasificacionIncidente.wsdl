@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ServicioClasificacionIncidente" targetNamespace="http://www.example.org/ServicioClasificacionIncidente/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.example.org/ServicioClasificacionIncidente/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.example.org/ServicioClasificacionIncidente/" xmlns:Q1="http://www.example.org/tipos">
+            <xsd:import namespace="http://www.example.org/tipos" schemaLocation="tipos.xsd"/>
+            <xsd:element name="determinarTipoIncidente">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element maxOccurs="1" minOccurs="1" name="idAviso" type="xsd:int"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="determinarTipoIncidenteResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element maxOccurs="1" minOccurs="1" name="tipoIncidente" type="Q1:TipoIncidente"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="determinarUrgenciaIncidente">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element maxOccurs="1" minOccurs="1" name="idAviso" type="xsd:int"/>
+
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="determinarUrgenciaIncidenteResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element maxOccurs="1" minOccurs="1" name="nivelUrgencia" type="xsd:string"/>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="determinarTipoIncidenteRequest">
+    <wsdl:part name="parameters" element="tns:determinarTipoIncidente">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="determinarUrgenciaIncidenteResponse">
+    <wsdl:part name="parameters" element="tns:determinarUrgenciaIncidenteResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="determinarUrgenciaIncidenteRequest">
+    <wsdl:part name="parameters" element="tns:determinarUrgenciaIncidente">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="determinarTipoIncidenteResponse">
+    <wsdl:part name="parameters" element="tns:determinarTipoIncidenteResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioClasificacionIncidente">
+    <wsdl:operation name="determinarTipoIncidente">
+      <wsdl:input message="tns:determinarTipoIncidenteRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:determinarTipoIncidenteResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="determinarUrgenciaIncidente">
+      <wsdl:input message="tns:determinarUrgenciaIncidenteRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:determinarUrgenciaIncidenteResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioClasificacionIncidenteSOAP" type="tns:ServicioClasificacionIncidente">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="determinarTipoIncidente">
+      <soap:operation soapAction="http://www.example.org/ServicioClasificacionIncidente/determinarTipoIncidente"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="determinarUrgenciaIncidente">
+      <soap:operation soapAction="http://www.example.org/ServicioClasificacionIncidente/determinarUrgenciaIncidente"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioClasificacionIncidente">
+    <wsdl:port name="ServicioClasificacionIncidenteSOAP" binding="tns:ServicioClasificacionIncidenteSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

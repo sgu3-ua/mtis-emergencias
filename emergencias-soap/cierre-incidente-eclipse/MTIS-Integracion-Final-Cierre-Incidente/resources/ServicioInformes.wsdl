@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ServicioInformes" targetNamespace="http://www.example.org/ServicioInformes/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.example.org/ServicioInformes/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.example.org/ServicioInformes/" xmlns:Q1="http://example.org/emergencias/types/v1">
+            <xsd:import namespace="http://example.org/emergencias/types/v1" schemaLocation="types.xsd"/>
+            <xsd:element name="GenerarInformeOperativo">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="infomeOperativo" type="Q1:InformeType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="GenerarInformeOperativoResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+          	<xsd:element name="generado" type="xsd:boolean"/>
+          	<xsd:element maxOccurs="1" minOccurs="0" name="informeGenerado" type="Q1:InformeType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="GenerarInformeEstrategico">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="informeEstrategico" type="Q1:InformeType">
+      			</xsd:element>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="GenerarInformeEstrategicoResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="generado" type="xsd:boolean"/>
+      			<xsd:element maxOccurs="1" minOccurs="0" name="informeGenerado" type="Q1:InformeType">
+      			</xsd:element>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="GenerarInformeOperativoRequest">
+    <wsdl:part name="parameters" element="tns:GenerarInformeOperativo">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GenerarInformeEstrategicoRequest">
+    <wsdl:part name="parameters" element="tns:GenerarInformeEstrategico">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GenerarInformeEstrategicoResponse">
+    <wsdl:part name="parameters" element="tns:GenerarInformeEstrategicoResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GenerarInformeOperativoResponse">
+    <wsdl:part name="parameters" element="tns:GenerarInformeOperativoResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioInformes">
+    <wsdl:operation name="GenerarInformeOperativo">
+      <wsdl:input message="tns:GenerarInformeOperativoRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GenerarInformeOperativoResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GenerarInformeEstrategico">
+      <wsdl:input message="tns:GenerarInformeEstrategicoRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GenerarInformeEstrategicoResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioInformesSOAP" type="tns:ServicioInformes">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GenerarInformeOperativo">
+      <soap:operation soapAction="http://www.example.org/ServicioInformes/GenerarInformeOperativo"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GenerarInformeEstrategico">
+      <soap:operation soapAction="http://www.example.org/ServicioInformes/GenerarInformeEstrategico"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioInformes">
+    <wsdl:port name="ServicioInformesSOAP" binding="tns:ServicioInformesSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

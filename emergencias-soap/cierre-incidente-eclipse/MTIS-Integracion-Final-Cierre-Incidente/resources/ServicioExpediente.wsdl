@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ServicioExpediente" targetNamespace="http://www.example.org/ServicioExpediente/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.example.org/ServicioExpediente/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.example.org/ServicioExpediente/" xmlns:Q1="http://example.org/emergencias/types/v1">
+            <xsd:import namespace="http://example.org/emergencias/types/v1" schemaLocation="types.xsd"/>
+            <xsd:element name="Crear">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="expediente" type="Q1:ExpedienteType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="CrearResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+          	<xsd:element name="expedienteId" type="xsd:int"/>
+          	<xsd:element name="creado" type="xsd:boolean"/>
+          	<xsd:element name="error" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Clasificar">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="expedienteId" type="xsd:string"/>
+      			<xsd:element name="clasificacion" type="xsd:string"/>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="ClasificarResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="clasificado" type="xsd:boolean"/>
+      			
+
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Archivar">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="expedienteId" type="xsd:string"/>
+
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="ArchivarResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="archivado" type="xsd:boolean"/>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Obtener">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="expedienteId" type="xsd:string"/>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="ObtenerResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="expediente" type="Q1:ExpedienteType">
+      			</xsd:element>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="ClasificarRequest">
+    <wsdl:part name="parameters" element="tns:Clasificar">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CrearResponse">
+    <wsdl:part name="parameters" element="tns:CrearResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ObtenerRequest">
+    <wsdl:part name="parameters" element="tns:Obtener">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ArchivarResponse">
+    <wsdl:part name="parameters" element="tns:ArchivarResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CrearRequest">
+    <wsdl:part name="parameters" element="tns:Crear">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ObtenerResponse">
+    <wsdl:part name="parameters" element="tns:ObtenerResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ClasificarResponse">
+    <wsdl:part name="parameters" element="tns:ClasificarResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ArchivarRequest">
+    <wsdl:part name="parameters" element="tns:Archivar">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioExpediente">
+    <wsdl:operation name="Crear">
+      <wsdl:input message="tns:CrearRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CrearResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Clasificar">
+      <wsdl:input message="tns:ClasificarRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ClasificarResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Archivar">
+      <wsdl:input message="tns:ArchivarRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ArchivarResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Obtener">
+      <wsdl:input message="tns:ObtenerRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ObtenerResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioExpedienteSOAP" type="tns:ServicioExpediente">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Crear">
+      <soap:operation soapAction="http://www.example.org/ServicioExpediente/Crear"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Clasificar">
+      <soap:operation soapAction="http://www.example.org/ServicioExpediente/Clasificar"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Archivar">
+      <soap:operation soapAction="http://www.example.org/ServicioExpediente/Archivar"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Obtener">
+      <soap:operation soapAction="http://www.example.org/ServicioExpediente/Obtener"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioExpediente">
+    <wsdl:port name="ServicioExpedienteSOAP" binding="tns:ServicioExpedienteSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

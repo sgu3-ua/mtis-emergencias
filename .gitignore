@@ -1,9 +1,32 @@
+# OS
+.DS_Store
+
+# Node
 emergencias-rest/node_modules/
+client/node_modules/
 emergencias-rest/dist/
+coverage/
+
+# Logs
 *.log
 .env
-.DS_Store
-coverage/
-.idea/
+
+# Java
+target/
+build/
+bin/
+*.class
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# IDEs
 .vscode/
+.idea/
 *.iml
+
+# SOAP generated
+**/WebContent/WEB-INF/services/
+**/WebContent/WEB-INF/lib/

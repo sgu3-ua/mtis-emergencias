@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/tipos" xmlns:tns="http://www.example.org/tipos" elementFormDefault="qualified">
+    
+    <complexType name="Aviso">
+    	<sequence>
+    		<element name="idAviso" type="int" maxOccurs="1" minOccurs="0">
+    		</element>
+    		<element name="telefono" type="string" maxOccurs="1"
+    			minOccurs="1">
+    		</element>
+    		<element name="localizacion" type="string" maxOccurs="1"
+    			minOccurs="1">
+    		</element>
+    		<element name="descripcion" type="string" maxOccurs="1"
+    			minOccurs="1">
+    		</element>
+    		<element name="afectados" type="integer" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="hayFuego" type="boolean">
+    		</element>
+			<element name="hayHumo" type="boolean">
+			</element>
+			<element name="personasAtrapadas" type="boolean">
+			</element>
+			<element name="personasHeridas" type="boolean">
+			</element>
+			<element name="riesgoSeguridad" type="boolean">
+			</element>
+			<element name="riesgoEstructural" type="boolean">
+			</element>
+			<element name="alteracionOrdenPublico" type="boolean">
+			</element>
+    	</sequence>
+    </complexType>
+    
+    <complexType name="TipoIncidente">
+      	<sequence>
+      		<element name="requiereBomberos" type="boolean"></element>
+        	<element name="requierePolicia" type="boolean"></element>
+        	<element name="requiereSanitarios" type="boolean"></element>
+      	</sequence>
+    </complexType>
+    
+    <simpleType name="NivelUrgencia">
+		<restriction base="string">
+      		<enumeration value="BAJA"/>
+        	<enumeration value="MEDIA"/>
+        	<enumeration value="ALTA"/>
+		</restriction>
+	</simpleType>
+	
+    <simpleType name="EstadoIncidente">
+ 		<restriction base="string">
+    		<enumeration value="ACTIVO"></enumeration>
+    		<enumeration value="RESUELTO"></enumeration>
+    	</restriction>
+    </simpleType>
+    
+    <complexType name="Incidente">
+      	<sequence>
+      		<element name="idIncidente" type="int" maxOccurs="1" 
+      			minOccurs="1">
+      		</element>
+      		<element name="avisos" type="tns:Aviso" maxOccurs="unbounded" 
+      			minOccurs="1">
+      		</element>
+      		<element name="tipoIncidente" type="tns:TipoIncidente" maxOccurs="1" 
+      			minOccurs="1">
+      		</element>
+      		<element name="nivelUrgencia" type="tns:NivelUrgencia" maxOccurs="1" 
+      			minOccurs="1">
+      		</element>
+      		<element name="descripcion" type="string" maxOccurs="1" 
+      			minOccurs="1">
+			</element>
+      		<element name="localizacion" type="string" maxOccurs="1"
+      			minOccurs="1">
+      		</element>
+      		<element name="estado" type="tns:EstadoIncidente" maxOccurs="1" 
+      			minOccurs="1">
+      		</element>
+      	</sequence>
+    </complexType>
+      
+</schema>

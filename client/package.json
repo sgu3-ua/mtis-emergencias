@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "browserify app.js -o bundle.js && vite"
+  },
+  "dependencies": {
+    "soap": "^1.7.1",
+    "vite": "^7.3.1"
+  }
+}
