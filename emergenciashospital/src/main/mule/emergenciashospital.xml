@@ -8,6 +8,31 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8db61074-2af9-422d-9c2a-b83316642318">
 		<http:listener-connection host="0.0.0.0" port="8081" />
+		 <http:listener-interceptors >
+        <http:cors-interceptor allowCredentials="false">
+            <http:origins >
+                <http:origin url="http://localhost:5173" accessControlMaxAge="30000" >
+                    <http:allowed-methods >
+                        <http:method methodName="OPTIONS" />
+                        <http:method methodName="GET" />
+                        <http:method methodName="POST" />
+                        <http:method methodName="PUT" />
+                        <http:method methodName="DELETE" />
+                    </http:allowed-methods>
+                    <http:allowed-headers >
+                        <http:header headerName="Content-Type" />
+                        <http:header headerName="Accept" />
+                    </http:allowed-headers>
+                    <http:expose-headers >
+                        <http:header headerName="Access-Control-Allow-Origin" />
+                        <http:header headerName="Access-Control-Allow-Methods" />
+                        <http:header headerName="Access-Control-Allow-Headers" />
+                    </http:expose-headers>
+                </http:origin>
+
+            </http:origins>
+        </http:cors-interceptor>
+    </http:listener-interceptors>
 	</http:listener-config>
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="02dfd625-1145-485b-bade-928cbdd684f9" >
 		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="sistema_emergencias" />
@@ -88,7 +113,7 @@ output application/json
 						<ee:transform doc:name="Transform Message" doc:id="40a84bda-1f2d-442a-99d8-590fb3b9ae2f" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
-output application/jsom
+output application/json
 ---
 {
 	"error" : "No existe el incidente"
@@ -151,7 +176,7 @@ output application/jsom
 }]]]></http:query-params>
 						</http:request>
 										<logger level="INFO" doc:name="Hospitales disponibles" doc:id="4593f417-b5f6-46cb-b05f-51baa7ba14a5" message="#[payload]" />
-										<set-variable value="#[(false as Boolean)]" doc:name="Set Variable" doc:id="4510070c-7f4f-4c45-a1a9-415946077de7" variableName="encontrado"/>
+										<set-variable value="#[(false as Boolean)]" doc:name="Set Variable Encontrado" doc:id="4510070c-7f4f-4c45-a1a9-415946077de7" variableName="encontrado"/>
 										<foreach doc:name="For Each" doc:id="e438862d-56a8-4cda-99da-f969fbd94dd6" collection="#[payload]">
 											<choice doc:name="Choice" doc:id="ab0fbfbb-e39d-4c81-9452-bc2343ff0eb2" >
 												<when expression="#[vars.encontrado]">
@@ -168,41 +193,12 @@ output application/jsom
 															<logger level="INFO" doc:name="Logger 2" doc:id="70d4fef1-8149-4260-b5d2-57dce5064f37" message="#[payload]"/>
 														</when>
 														<otherwise>
-													<set-variable value="#[payload.hospitalId]" doc:name="Set Variable hospitalid" doc:id="7bd4a31f-9f1d-4642-90dc-edfb87c39c81" variableName="hospitalid" />
-													<set-variable value="#[(true as Boolean)]" doc:name="Set Variable" doc:id="d0d59de9-5959-40ae-abe2-85aa8837811e" variableName="encontrado"/>
-															<http:request method="GET" doc:name="Calcula ruta" doc:id="ad976558-a83f-407b-a5cb-a4ad1c11182f" config-ref="HTTP_Request_configuration" path="/rutas">
-														<http:query-params><![CDATA[#[output application/java
----
-{
-	destintoLatitud : ((now() as Number) mod 100) + 1,
-	origenLongitud : vars.lon,
-	origenLatitud : vars.lat,
-	destinoLongitud : ((now() as Number) mod 100) + 1
-}]]]></http:query-params>
-													</http:request>
-													<logger level="INFO" doc:name="Ruta calculada" doc:id="6c131cd9-11ff-4c4e-bdfb-1d6d8c1dc958" message="#[payload]" />
-													<http:request method="POST" doc:name="Registro incidente" doc:id="4d5b882c-ee8d-4858-b9cc-42f3b53d91f2" config-ref="HTTP_Request_configuration" path="/registro/incidente">
-											<http:body><![CDATA[#[{
-  "idIncidente": vars.incidenteid,
-  "recursosAsignados": [
-    {
-      "descripcion": "Nada",
-      "codigo": vars.codigo,
-      "personalRequerido": 1,
-      "camasRequeridas": 1
-    }
-  ],
-  "paciente": vars.paciente,
-  "hospitalAsignado": vars.hospitalid,
-  "timestamp": (now() as String { format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" })
-}]]]></http:body>
-														<http:query-params><![CDATA[#[output application/java
----
-{
-	"sanitarios" : vars.sanitarios,
-	"paciente" : vars.paciente.idPaciente,
-	"hospital" : vars.hospitalid
-}]]]></http:query-params>
+													<set-variable value="#[payload.hospitalID]" doc:name="Set Variable hospitalid" doc:id="7bd4a31f-9f1d-4642-90dc-edfb87c39c81" variableName="hospitalid" />
+													<set-variable value="#[(true as Boolean)]" doc:name="Set Variable Econtrado" doc:id="d0d59de9-5959-40ae-abe2-85aa8837811e" variableName="encontrado"/>
+													<logger level="INFO" doc:name="Paciente" doc:id="6c131cd9-11ff-4c4e-bdfb-1d6d8c1dc958" message="#[vars.paciente]" />
+													<set-payload value="#[{&#10;  &quot;idIncidente&quot;: vars.incidenteid,&#10;  &quot;recursosAsignados&quot;: [&#10;    {&#10;      &quot;descripcion&quot;: &quot;Nada&quot;,&#10;      &quot;codigo&quot;: vars.codigo as String,&#10;      &quot;personalRequerido&quot;: &quot;1&quot;,&#10;      &quot;camasRequeridas&quot;: &quot;1&quot;&#10;    }&#10;  ],&#10;  &quot;paciente&quot;: vars.paciente,&#10;  &quot;hospitalAsignado&quot;: vars.hospitalid,&#10;  &quot;timestamp&quot;: (now() as String { format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSS'Z'&quot; })&#10;}]" doc:name="Set Payload" doc:id="99d190f4-f5b7-43dd-b63f-50d820ba8ba6" />
+															<logger level="INFO" doc:name="Logger" doc:id="5a4108e7-a3dc-4ebe-ba81-3b616066a04f" message="#[payload]"/>
+															<http:request method="POST" doc:name="Registro incidente" doc:id="4d5b882c-ee8d-4858-b9cc-42f3b53d91f2" config-ref="HTTP_Request_configuration" path='#["/registro/indicente?paciente=" ++ (vars.paciente.idPaciente as String) ++ "&amp;sanitarios=" ++ (vars.sanitarios as String) ++ "&amp;hospital=" ++ (vars.hospitalid as String)]'>
 										</http:request>
 												</otherwise>
 											</choice>

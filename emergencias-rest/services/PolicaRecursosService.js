@@ -12,7 +12,7 @@ const { query } = require('../repository/db');
 const recursosGET = ({ cuerpo }) => new Promise(
   async (resolve, reject) => {
     try {
-      let sql = 'SELECT * FROM unidad_polica WHERE disponibilidad = TRUE';
+      let sql = 'SELECT id, comisaria_id, cuerpo, disponibilidad FROM unidad_policia WHERE disponibilidad = TRUE';
       const params = [];
 
       if (typeof cuerpo === 'string' && cuerpo.trim().length > 0) {

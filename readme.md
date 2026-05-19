@@ -1,11 +1,11 @@
 # MTIS Emergencias
 Proyecto final de la asignatura MTIS.  
 Autores:
-Javier Gárcia Cutillas  
+Javier García Cutillas  
 Sergio González Urbán  
 Morgana Macías Ruiz  
-Antonio Máinar Sanchez  
-Sara Vasquez Pons  
+Antonio Mainar Sánchez  
+Sara Vázquez Pons  
 
 
 

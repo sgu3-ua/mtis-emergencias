@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://example.org/emergencias/types/v1"
+    xmlns="http://example.org/emergencias/types/v1"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+    <xs:complexType name="DatoServicioType">
+        <xs:sequence>
+            <xs:element name="servicio" type="xs:string"/>
+            <xs:element name="horaSalida" type="xs:dateTime" minOccurs="0"/>
+            <xs:element name="horaLlegada" type="xs:dateTime" minOccurs="0"/>
+            <xs:element name="actuaciones" type="xs:string" minOccurs="0"/>
+            <xs:element name="recursosUtilizados" type="xs:string" minOccurs="0"/>
+            <xs:element name="observaciones" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ExpedienteType">
+        <xs:sequence>
+            <xs:element name="expedienteId" type="xs:string"/>
+            <xs:element name="incidenteId" type="xs:string"/>
+            <xs:element name="clasificacion" type="xs:string" minOccurs="0"/>
+            <xs:element name="estado" type="xs:string" minOccurs="0"/>
+            <xs:element name="datoServicio" type="DatoServicioType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ParametroType">
+        <xs:sequence>
+            <xs:element name="nombre" type="xs:string"/>
+            <xs:element name="valor" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="InformeType">
+        <xs:sequence>
+        	<xs:element name="informeId" type="xs:string" />
+        	<xs:element name="tipo" type="xs:string" />
+        	<xs:element name="resumen" type="xs:string" />
+        	<xs:element name="expedienteId" type="xs:string">
+        	</xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+
+
+
+</xs:schema>

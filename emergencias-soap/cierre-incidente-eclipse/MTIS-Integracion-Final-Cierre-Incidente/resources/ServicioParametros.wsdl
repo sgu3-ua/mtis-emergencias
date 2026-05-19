@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ServicioParametros" targetNamespace="http://www.example.org/ServicioParametros/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.example.org/ServicioParametros/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.example.org/ServicioParametros/" xmlns:Q1="http://example.org/emergencias/types/v1">
+            <xsd:import namespace="http://example.org/emergencias/types/v1" schemaLocation="types.xsd"/>
+            <xsd:element name="Calcular">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="1" name="parametro" type="Q1:ParametroType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="CalcularResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="1" name="resultado" type="Q1:ParametroType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Comprobar">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="expedienteId" type="xsd:string">
+      			</xsd:element>
+
+      			<xsd:element name="parametro" type="Q1:ParametroType">
+      			</xsd:element>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="ComprobarResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="correcto" type="xsd:boolean"/>
+      			<xsd:element name="paramCorrecto" type="Q1:ParametroType">
+      			</xsd:element>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Verificar">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+                        <xsd:element name="parametro" type="Q1:ParametroType">
+      			</xsd:element>
+                        <xsd:element name="umbralMin" type="xsd:double"/>
+      			<xsd:element name="umbralMax" type="xsd:double"/>
+
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="VerificarResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element name="correcto" type="xsd:boolean"/>
+      			<xsd:element name="parametro" type="Q1:ParametroType">
+      			</xsd:element>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="CalcularRequest">
+    <wsdl:part name="parameters" element="tns:Calcular">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="VerificarRequest">
+    <wsdl:part name="parameters" element="tns:Verificar">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ComprobarResponse">
+    <wsdl:part name="parameters" element="tns:ComprobarResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CalcularResponse">
+    <wsdl:part name="parameters" element="tns:CalcularResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ComprobarRequest">
+    <wsdl:part name="parameters" element="tns:Comprobar">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="VerificarResponse">
+    <wsdl:part name="parameters" element="tns:VerificarResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioParametros">
+    <wsdl:operation name="Calcular">
+      <wsdl:input message="tns:CalcularRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CalcularResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comprobar">
+      <wsdl:input message="tns:ComprobarRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ComprobarResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Verificar">
+      <wsdl:input message="tns:VerificarRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:VerificarResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioParametrosSOAP" type="tns:ServicioParametros">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Calcular">
+      <soap:operation soapAction="http://www.example.org/ServicioParametros/Calcular"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comprobar">
+      <soap:operation soapAction="http://www.example.org/ServicioParametros/Comprobar"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Verificar">
+      <soap:operation soapAction="http://www.example.org/ServicioParametros/Verificar"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioParametros">
+    <wsdl:port name="ServicioParametrosSOAP" binding="tns:ServicioParametrosSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

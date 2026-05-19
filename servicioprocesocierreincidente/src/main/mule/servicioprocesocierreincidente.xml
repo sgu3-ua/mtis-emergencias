@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit-soap="http://www.mulesoft.org/schema/mule/apikit-soap" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/apikit-soap http://www.mulesoft.org/schema/mule/apikit-soap/current/mule-apikit-soap.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+    <http:listener-config name="api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="9090"/>
+    </http:listener-config>
+    <apikit-soap:config httpStatusVarName="httpStatus" name="soapkit-config" port="ServicioProcesoCierreIncidenteSOAP" service="ServicioProcesoCierreIncidente" wsdlLocation="ServicioProcesoCierreIncidente.wsdl"/>
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="e6c88bba-02a1-443c-b058-fc2b862efba2" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="sistema_emergencias" />
+	</db:config>
+	<wsc:config name="ServicioExpediente" doc:name="Web Service Consumer Config" doc:id="f805ac37-d224-44a4-94c3-cf8d20a88056" >
+		<wsc:connection wsdlLocation="ServicioExpediente.wsdl" service="ServicioExpediente" port="ServicioExpedienteSOAP" address="http://localhost:8081/MTIS-Integracion-Final-Cierre-Incidente/services/ServicioExpediente"/>
+	</wsc:config>
+	<wsc:config name="ServicioRecursos" doc:name="Web Service Consumer Config" doc:id="d815a011-eb46-4ac0-9580-5aaa1a285779" >
+		<wsc:connection wsdlLocation="ServicioRecursos.wsdl" service="ServicioRecursos" port="ServicioRecursosSOAP" address="http://localhost:8081/MTIS-Integracion-Final-Cierre-Incidente/services/ServicioRecursos"/>
+	</wsc:config>
+	<wsc:config name="ServicioParametros" doc:name="Web Service Consumer Config" doc:id="d95cb8fe-ae17-40dd-b5b1-ec6ebf3798b8" >
+		<wsc:connection wsdlLocation="ServicioParametros.wsdl" service="ServicioParametros" port="ServicioParametrosSOAP" address="http://localhost:8081/MTIS-Integracion-Final-Cierre-Incidente/services/ServicioParametros"/>
+	</wsc:config>
+	<wsc:config name="ServicioInformes" doc:name="Web Service Consumer Config" doc:id="c0926062-df3f-4508-b068-764b2de29581" >
+		<wsc:connection wsdlLocation="ServicioInformes.wsdl" service="ServicioInformes" port="ServicioInformesSOAP" address="http://localhost:8081/MTIS-Integracion-Final-Cierre-Incidente/services/ServicioInformes"/>
+	</wsc:config>
+	<flow name="api-main">
+        <http:listener config-ref="api-httpListenerConfig" path="/cerrarIncidente">
+            <http:response statusCode="#[attributes.additionalTransportData.statusCode default 200]">
+                <http:headers><![CDATA[#[attributes.protocolHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[attributes.additionalTransportData.statusCode default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[attributes.protocolHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit-soap:router config-ref="soapkit-config">
+            <apikit-soap:message>#[payload]</apikit-soap:message>
+            <apikit-soap:attributes>#[
+              %dw 2.0
+              output application/java
+              ---
+              {
+                  headers: attributes.headers,
+                  method: attributes.method,
+                  queryString: attributes.queryString
+            }]</apikit-soap:attributes>
+        </apikit-soap:router>
+    </flow>
+    <flow name="Cerrar:\soapkit-config">
+		<set-variable value="#[%dw 2.0&#10;ns ns0 http://www.example.org/ServicioProcesoCierreIncidente/&#10;output application/java&#10;---&#10;payload.body.ns0#Cerrar.incidenteId]" doc:name="Incidente ID" doc:id="a2be5244-a53b-4d12-b7fc-5628b6dd823b" variableName="incidenteId"/>
+		<set-payload value="#[vars.incidenteId]" doc:name="Incidente ID" doc:id="8c68db86-6aae-4fe5-8243-5b82ae9cda6e" />
+		<flow-ref doc:name="Verificar Incidente" doc:id="30ae4897-6597-455f-bdd3-f813c32a54b0" name="verificarIncidenteId"/>
+		<set-payload value="#[vars.incidenteId]" doc:name="Incidente ID" doc:id="848a6bb3-12c0-4859-b41d-f7731f1529e7" />
+		<flow-ref doc:name="Crear Expediente" doc:id="7e8d8508-1448-4cfe-9a6a-01843ba5b49a" name="crearExpediente"/>
+		<set-variable value="#[payload.expedienteId]" doc:name="Expediente ID" doc:id="2ab43e31-d442-4402-a644-80b5fd68f2df" variableName="expedienteId"/>
+		<wsc:consume doc:name="Obtener Datos Servicios" doc:id="467eab06-ea6b-4db7-ba35-fedfdffa0d54" config-ref="ServicioRecursos" operation="ObtenerDatos">
+			<wsc:message>
+				<wsc:body><![CDATA[#[%dw 2.0
+output application/xml
+ns ser http://www.example.org/ServicioRecursos/
+---
+{
+    ser#ObtenerDatos: {
+        expedienteId: payload.expedienteId
+    }
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<ee:transform doc:name="Transform Message" doc:id="30aad2cf-d870-4de1-a385-30c5948b5490" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns2 http://www.example.org/ServicioRecursos/
+ns ns1 http://example.org/emergencias/types/v1
+---
+{
+  datosServicios: payload.body.ns2#ObtenerDatosResponse.*datoServicio map (item, index) -> {
+    servicio: item.ns1#servicio,
+    horaSalida: item.ns1#horaSalida,
+    actuaciones: item.ns1#actuaciones,
+    recursosUtilizados: item.ns1#recursosUtilizados,
+    observaciones: item.ns1#observaciones
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value='#[%dw 2.0&#10;output text/plain&#10;var datos = payload.datosServicios&#10;---&#10;if (datos == null or isEmpty(datos))&#10;    "Ninguno."&#10;  else&#10;    (datos map ((ds) -&gt;&#10;      ds.servicio ++ ": " ++ (ds.recursosUtilizados default "N/A")&#10;    )) joinBy ". "]' doc:name="Resumen Recursos" doc:id="085ac742-ecd9-4eed-a88e-4ee30603c756" variableName="resumenRecursos"/>
+		<set-variable value="#[sizeOf(payload.datosServicios default [])]" doc:name="Número de servicios" doc:id="64b5764c-bbf7-414e-a27c-90228a026c99" variableName="numServicios"/>
+		<set-payload value="#[vars.expedienteId]" doc:name="Set Payload" doc:id="fa0fa774-b579-4b85-bad3-4fc762ba466c" />
+		<flow-ref doc:name="Calcular Parametros" doc:id="bf397087-e478-45fc-a217-0e139d696f8b" name="calcularParametros"/>
+		<logger level="INFO" doc:name="Logger" doc:id="74754aae-61fe-4a2c-bade-f11e1c803c9f" />
+		<set-variable value="#[payload]" doc:name="Parametros" doc:id="2cd655a3-51e5-403f-ae28-9b52661a59ce" variableName="parametros"/>
+		<flow-ref doc:name="Verificar Parametros" doc:id="dc0a4fe0-e665-4806-810d-a8da35f49a73" name="verificarParametros"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f24473f0-9a8f-43d2-945f-426460fe03da" />
+		<choice doc:name="Choice" doc:id="b41587bf-79bf-401e-8f0d-58e0e078ddb9" >
+			<when expression="#[payload.parametroFallido]">
+				<set-payload value='#[{&#10;	"expedienteId": vars.expedienteId,&#10;	"parametros": vars.parametros&#10;}]' doc:name="Set expedienteID y parametros" doc:id="3fc948db-6970-48a1-9a20-3a25410c9220" />
+				<flow-ref doc:name="Comprobar parametros" doc:id="c6021950-d8c3-4aa6-88be-38fad441c8a7" name="comprobarParametros" targetValue='#[vars.parametrosExpediente]'/>
+				<flow-ref doc:name="Reverificar parametros" doc:id="49eae4ab-df71-4746-b186-b54952add4a7" name="verificarParametros" targetValue="#[vars.parametros]"/>
+				<choice doc:name="Choice" doc:id="cd5aff11-3a92-405e-b930-2c2fec2f7222" >
+					<when expression="#[payload.parametroFallido]">
+						<raise-error doc:name="Verificación de parametros inválida con reintento" doc:id="867c31be-012f-4a94-9b5f-6286eae3a777" type="ANY" description="Reverificación de parametros inválida con reintento"/>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Parametros verificados correctamente" doc:id="ffdf7c68-f782-4ddc-a15e-accdc8695b81" message="Parametros verificados correctamente"/>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Parametros verificados correctamente" doc:id="8e16c792-a2a9-4144-a15e-516758bcf372" message="Parametros verificados correctamente"/>
+			</otherwise>
+		</choice>
+		<set-variable value="#[payload.resumenParametros]" doc:name="Resumen parametros" doc:id="bd078e7f-15f7-4be8-b0d9-67322390ad2d" variableName="resumenParametros"/>
+		<ee:transform doc:name="Transform Message" doc:id="5ba247fe-47cb-4e17-8f5a-14f3a57f6b35" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"incidenteId": vars.incidenteId,
+	"expedienteId": vars.expedienteId,
+	"resumenRecursos": vars.resumenRecursos,
+	"resumenParametros": vars.resumenParametros
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Generar informe operativo" doc:id="eb22f7d7-ea22-4894-aa26-a5d763a78310" name="generarInformeOperativo"/>
+		<ee:transform doc:name="Transform Message" doc:id="a3b7497c-3e42-48b4-b1f7-9b78d277e9f7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"incidenteId": vars.incidenteId,
+	"expedienteId": vars.expedienteId,
+	"numRecursos": vars.numServicios,
+	"resumenParametros": vars.resumenParametros
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Generar informe estrategico" doc:id="c000ecb9-d218-4641-98dd-870e82ca5401" name="generarInformeEstrategico"/>
+		<set-payload value="#[%dw 2.0&#10;output application/xml&#10;ns ser http://www.example.org/ServicioExpediente/&#10;---&#10;ser#Archivar: {&#10;  expedienteId: vars.expedienteId&#10;}]" doc:name="Set Payload" doc:id="a74393be-de5e-44df-827c-4eaa0de55d03" />
+		<wsc:consume operation="Archivar" doc:name="Archivar expediente" doc:id="772cff53-7db3-4187-9000-df4d6e8f7323" config-ref="ServicioExpediente">
+		</wsc:consume>
+		<ee:transform doc:name="Transform Message" doc:id="c785c69c-5bcf-4ef9-a337-9f13b9f3fc25" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+ns ns5 http://www.example.org/ServicioExpediente/
+---
+{
+	archivado: payload.body.ns5#ArchivarResponse.archivado
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="d19cd9a1-1c91-46b8-a8d3-871a4db53bb1" >
+			<when expression="#[payload.archivado]">
+				<logger level="INFO" doc:name="Expediente archivado correctamente" doc:id="799f74ea-9be8-4cfc-9639-18629af76b92" message="Expediente archivado correctamente"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Expediente no se ha archivado correctamente" doc:id="0d4ce77a-22ae-4f7f-a687-942dc9c3a078" type="ANY" description="Expediente no se ha archivado correctamente"/>
+			</otherwise>
+		</choice>
+		<db:update doc:name="Update" doc:id="1ea53724-a7a5-4eab-8510-2b647693d316" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE incidente SET estado = 'RESUELTO' WHERE id = :incidente_id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{"incidente_id": vars.incidenteId}]]]></db:input-parameters>
+		</db:update>
+		<choice doc:name="Choice" doc:id="d81109d5-5256-47ef-8816-0bf901db0152" >
+			<when expression="#[payload.affectedRows &gt; 0]">
+				<logger level="INFO" doc:name="Estado del incidente resuelto" doc:id="b69ef5ed-346d-46a7-8870-94a33bfc1bf2" message="Estado del incidente resuelto"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Estado del incidente no resuelto" doc:id="1a771a3a-b84c-44e2-b0bf-a6f588b2e6b9" type="ANY" description="Estado del incidente no resuelto"/>
+			</otherwise>
+		</choice>
+		<set-payload value='#[%dw 2.0&#10;output application/xml&#10;ns ns0 http://www.example.org/ServicioProcesoCierreIncidente/&#10;---&#10;{&#10;    body: {&#10;        ns0#CerrarResponse: {&#10;            ns0#incidenteCerrado: true,&#10;            ns0#error: ""&#10;        }&#10;    }&#10;}]' doc:name="Respuesta SOAP Contrato" doc:id="d11f7816-4d91-489a-ab2b-a8968ce147d3" />
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="144379f2-1363-4d7c-9cbc-654585fa6e63" type="ANY">
+				<set-payload value="#[%dw 2.0&#10;output application/xml&#10;ns ns0 http://www.example.org/ServicioProcesoCierreIncidente/&#10;---&#10;{&#10;    body: {&#10;        ns0#CerrarResponse: {&#10;            ns0#incidenteCerrado: false,&#10;            ns0#error: error.description&#10;        }&#10;    }&#10;}]" doc:name="Respuesta SOAP Contrato" doc:id="ad316c9e-6679-4672-bf75-63e6ac899b32" />
+			</on-error-continue>
+		</error-handler>
+    </flow>
+	<sub-flow name="verificarIncidenteId" doc:id="baa8f5f6-0d0f-495d-bc7e-c3874eefed39" >
+		<db:select doc:name="Select Incidente" doc:id="f931ae1b-d610-4c14-9500-b0207c94b87c" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT id, estado FROM incidente WHERE id = :incidenteId LIMIT 1]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{"incidenteId": payload}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="ae331e97-58d7-493a-ae25-44ddb1b62846" >
+			<when expression='#[not isEmpty(payload) and upper(payload[0].estado as String) == "ACTIVO"]'>
+				<logger level="INFO" doc:name="El incidente ya esta activo" doc:id="b213b62e-511e-457b-a591-479f7b4fc56d" message="El incidente ya esta activo"/>
+			</when>
+			<when expression='#[not isEmpty(payload) and upper(payload[0].estado as String) != "ACTIVO"]'>
+				<raise-error doc:name="El incidente ya no esta activo" doc:id="2cf50941-0027-4134-84d2-b7e67d4a8f08" type="ANY" description="El incidente ya no esta activo"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Incidente no encontrado" doc:id="01778648-038a-4247-a32c-9e584c2c30df" type="ANY" description="Incidente no encontrado"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="crearExpediente" doc:id="975c121b-abd3-4857-a52e-452320eac6ff">
+		<wsc:consume doc:name="Crear Expediente" doc:id="3a6c1ee0-de8b-4fe7-a622-c8d46ace86dc" config-ref="ServicioExpediente" operation="Crear">
+			<wsc:message>
+				<wsc:body><![CDATA[#[%dw 2.0
+output application/xml
+ns ser http://www.example.org/ServicioExpediente/
+ns v1 http://example.org/emergencias/types/v1
+---
+{
+    ser#Crear: {
+        expediente: {
+            v1#expedienteId: "",
+            v1#incidenteId: payload
+        }
+    }
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<ee:transform doc:name="Transform Message" doc:id="2f850a6a-03be-40c2-a5bd-79733ae31072" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns5 http://www.example.org/ServicioExpediente/
+---
+{
+    expedienteId: payload.body.ns5#CrearResponse.expedienteId as Number,
+    creado:       payload.body.ns5#CrearResponse.creado as Boolean,
+    error:        payload.body.ns5#CrearResponse.error
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="a1bc1152-9f98-4de6-8077-29f74877472b" >
+			<when expression="#[payload.creado]">
+				<logger level="INFO" doc:name="Expediente creado correctamente" doc:id="200b611f-0352-4480-a22e-31706d0110dc" message="Expediente creado correctamente"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="No se pudo crear el expediente" doc:id="55220930-17cc-4541-96d6-f2235517c9a2" type="ANY" description="No se pudo crear el expediente"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="8f5b1fe9-50f3-4cc6-9de0-9168ac59491a" message="#[payload]"/>
+	</sub-flow>
+	<sub-flow name="calcularParametros" doc:id="23e51016-9c6f-4d16-b8c5-71da5475ccea">
+		<db:select doc:name="Select" doc:id="272c1d55-3a29-4631-811e-2c3f52f6ed88" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT COUNT(*) as num, AVG(TIMESTAMPDIFF(MINUTE, hora_salida, hora_llegada)) as avg_tiempo, MAX(TIMESTAMPDIFF(MINUTE, hora_salida, hora_llegada)) as max_tiempo, SUM(CASE WHEN actuaciones IS NOT NULL AND actuaciones <> '' THEN 1 ELSE 0 END) as con_actuacion FROM dato_servicio WHERE expediente_id = :expedienteId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{"expedienteId": payload}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="8e63a5da-d0bb-491e-8b7e-facefc572f59">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+
+var row    = payload[0]
+var num    = row.num
+var avg    = row.avg_tiempo
+var max    = row.max_tiempo
+var conAct = row.con_actuacion
+
+fun crearParametro(nombre, valor) = {
+    nombre: nombre,
+    valor: valor
+}
+
+fun formatDecimal(n) = 
+    (n as String {format: "0.00"}) replace "," with "."
+
+---
+[
+    crearParametro("numeroservicios", num as String),
+    crearParametro("tiemporespuestapromedio", if (avg != null and avg >= 0) formatDecimal(avg) else "0.00"),
+    crearParametro("tiemporespuestamaximo",   if (max != null and max >= 0) formatDecimal(max) else "0.00"),
+    crearParametro("serviciosconactuacion", conAct as String)
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d0a018e1-1c85-432c-9846-4987816ec283" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="859aa5b2-49af-4ea1-8448-02db1055b0bb">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+
+ns ser http://www.example.org/ServicioParametros/
+ns v1 http://example.org/emergencias/types/v1
+
+---
+ser#Calcular: {
+    (payload map (p) -> {
+        parametro: {
+            v1#nombre: p.nombre,
+            v1#valor: p.valor
+        }
+    })
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume doc:name="Consume" doc:id="82112448-90ea-4f76-b73d-7b7c90b820e1" config-ref="ServicioParametros" operation="Calcular" />
+		<ee:transform doc:name="Transform Message" doc:id="df466f0f-b773-45d6-95bf-53d25b311c20">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+ns ns3 http://www.example.org/ServicioParametros/
+ns ns1 http://example.org/emergencias/types/v1
+---
+{
+    parametros: payload.body.ns3#CalcularResponse.*resultado map (r) -> {
+        nombre: r.ns1#nombre,
+        valor:  r.ns1#valor
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b7cfe3f0-656d-48b0-9a6a-67b7de610b7a" message="#[payload]" />
+	</sub-flow>
+	<sub-flow name="verificarParametros" doc:id="16dbc2f1-7d64-476f-a522-536f3ef56ffb">
+		<set-variable value="#[payload.parametros]" doc:name="Parametros" doc:id="b1c97bdb-d7ab-4406-90fc-c090ca3f2945" variableName="parametros"/>
+		<set-variable value="#[false]" doc:name="Parametro fallido" doc:id="5295e340-449a-4d8a-908a-5b092a1a8e01" variableName="parametroFallido" />
+		<foreach doc:name="For Each" doc:id="7ae304f2-37d8-4bcb-8160-b518e132797a" collection="#[vars.parametros]">
+			<choice doc:name="Choice" doc:id="c94ff972-da92-4328-8131-47c5127226f8">
+			<when expression="#[!vars.parametroFallido]">
+				<logger level="INFO" doc:name="Logger" doc:id="eb05e18b-2faf-4fea-ac9d-a45da873832b" message="#[payload]" />
+				<choice doc:name="Choice" doc:id="40ff26ce-4e1b-40c1-84b0-6f30f73879a9">
+				<when expression='#[payload.nombre == "dispersionTemporal"]'>
+					<ee:transform doc:name="Transform Message" doc:id="b768700d-5c92-4057-94e5-98c9f07b1978">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+
+ns ser http://www.example.org/ServicioParametros/
+ns v1 http://example.org/emergencias/types/v1
+
+---
+ser#Verificar: {
+    parametro: {
+        v1#nombre: payload.nombre,
+        v1#valor: payload.valor
+    },
+    umbralMin: NaN,
+    umbralMax: NaN
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+				<otherwise>
+					<ee:transform doc:name="Transform Message" doc:id="9a78da7b-b9f6-4851-876a-1a9753115b3a">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+
+ns ser http://www.example.org/ServicioParametros/
+ns v1 http://example.org/emergencias/types/v1
+
+---
+ser#Verificar: {
+    parametro: {
+        v1#nombre: payload.nombre,
+        v1#valor: payload.valor
+    },
+    umbralMin: 0,
+    umbralMax: 100
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				</otherwise>
+			</choice>
+				<wsc:consume operation="Verificar" doc:name="Consume" doc:id="f9d5e5cc-5ab6-4740-9b44-0c2334ca1e2e" config-ref="ServicioParametros" />
+				<ee:transform doc:name="Transform Message" doc:id="783393d5-3977-4935-8380-6d021b18d4c1">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+ns ns3 http://www.example.org/ServicioParametros/
+ns ns1 http://example.org/emergencias/types/v1
+
+---
+{
+    correcto: payload.body.ns3#VerificarResponse.correcto,
+    parametro: {
+        nombre: payload.body.ns3#VerificarResponse.parametro.ns1#nombre,
+        valor: payload.body.ns3#VerificarResponse.parametro.ns1#valor
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<choice doc:name="Choice" doc:id="34ad38f0-4e8d-462c-8f0f-a0e02ca78706">
+				<when expression="#[payload.correcto]">
+					<logger level="INFO" doc:name="Parametro verificado correctamente" doc:id="3e6cb4a0-7da8-43e3-88ba-d2f912fae8b7" message='#[payload.parametro.nombre ++ " verificado correctamente"]' />
+				</when>
+				<otherwise>
+					<set-variable value="#[true]" doc:name="Parametro fallido" doc:id="de59b350-be5a-4dde-ac24-b29a2bc2a1e3" variableName="parametroFallido" />
+				</otherwise>
+			</choice>
+				<logger level="INFO" doc:name="Logger" doc:id="a6c3fed9-591c-47b7-ae34-6dd6c594f734" message="#[payload]" />
+			</when>
+				<otherwise>
+					<logger level="INFO" doc:name="Parametro fallido" doc:id="6d49b533-477b-4e1b-92b6-bdf0a99d5035" message="Bucle finalizado debido a la existencia de un parametro fallido"/>
+				</otherwise>
+		</choice>
+		</foreach>
+		<choice doc:name="Choice" doc:id="80f6bfbc-fb02-4bd0-85ed-f97d02c6680a">
+				<when expression="#[!vars.parametroFallido]">
+					<ee:transform doc:name="Transform Message" doc:id="51bda64c-3e69-497d-907c-ff1460eba4de">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"parametroFallido": vars.parametroFallido,
+	"resumenParametros": (vars.parametros map (p) -> (p.nombre ++ "=" ++ p.valor)) joinBy "; "
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+				<otherwise>
+					<ee:transform doc:name="Transform Message" doc:id="6edf4f0f-03d7-4153-8011-5798dbaaa8fa">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"parametroFallido": vars.parametroFallido,
+	"resumenParametros": ""
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</otherwise>
+			</choice>
+	</sub-flow>
+	<sub-flow name="comprobarParametros" doc:id="8bbdd839-1ee0-47a4-b41a-39f079ac2c33" >
+		<logger level="INFO" doc:name="Logger" doc:id="06d29926-bb4e-4d45-91ca-f1b42136b2cf" message="#[payload]"/>
+		<set-variable value="#[payload.expedienteId]" doc:name="expedienteID" doc:id="e4258368-e996-4fb5-90c8-3e5975697237" variableName="expedienteId"/>
+		<foreach doc:name="For Each" doc:id="143cd0c9-a8df-495b-9c0e-dbd24696bd14" collection="#[payload.parametros]">
+			<wsc:consume operation="Comprobar" doc:name="Consume" doc:id="2304a504-4569-4c12-8a12-13fe45fe5bb8" config-ref="ServicioParametros" >
+				<wsc:message >
+					<wsc:body ><![CDATA[#[%dw 2.0
+output application/xml
+ns ser http://www.example.org/ServicioParametros/
+ns v1 http://example.org/emergencias/types/v1
+---
+ser#Comprobar: {
+	expedienteId: vars.expedienteId,
+	parametro: {
+		v1#nombre: payload.nombre,
+		v1#valor: payload.valor
+	}
+}]]]></wsc:body>
+				</wsc:message>
+			</wsc:consume>
+			<logger level="INFO" doc:name="Logger" doc:id="d5b956c4-b8f4-4911-8601-f1ef0369dd11" message="#[payload]"/>
+		</foreach>
+	</sub-flow>
+	<sub-flow name="generarInformeOperativo" doc:id="23464ce4-f873-4d3f-b7e4-e7d16ff40dbb" >
+		<logger level="INFO" doc:name="Logger" doc:id="56c37103-5550-4412-8f30-5d11d38e09aa" message="#[payload]"/>
+		<wsc:consume doc:name="Consume" doc:id="742eebe1-1ebd-41e1-9f68-66bf3d0cc07f" config-ref="ServicioInformes" operation="GenerarInformeOperativo">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[%dw 2.0
+output application/xml
+ns ser http://www.example.org/ServicioInformes/
+ns v1 http://example.org/emergencias/types/v1
+var resumenOperativo = "INFORME OPERATIVO - Incidente " ++ payload.incidenteId ++ "| Estado: ACTIVO | Despliegue: " ++ payload.resumenRecursos ++ " | Parametros: " ++ payload.resumenParametros ++ " | Recomendacion: mantener despliegue activo segun verificaciones."
+---
+ser#GenerarInformeOperativo: {
+	infomeOperativo: {
+		v1#informeId: "0",
+		v1#tipo: "OPERATIVO",
+		v1#resumen: resumenOperativo,
+		v1#expedienteId: payload.expedienteId,
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<logger level="INFO" doc:name="Logger" doc:id="e0aa42b1-6177-49fe-b8f7-9a7882ca646e" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="642f72f9-5c66-42ad-b85a-81f0befd43ae" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+ns ns4 http://www.example.org/ServicioInformes/
+---
+{
+	generado: payload.body.ns4#GenerarInformeOperativoResponse.generado
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="776a6210-7e2d-4af0-8bac-0dd082cdccc3" >
+			<when expression="#[payload.generado]">
+				<logger level="INFO" doc:name="Informe operativo generado correctamente" doc:id="dfc368e1-32bb-4479-bf97-250fe4568ae9" message="Informe operativo generado correctamente"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Informe operativo no ha sido generado correctamente" doc:id="bbb4fdc6-1e2f-497f-8bdf-f60c68362311" type="ANY" description="Informe operativo no ha sido generado correctamente"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="generarInformeEstrategico" doc:id="f612471e-8d18-42f2-ad21-40ed44271898" >
+		<logger level="INFO" doc:name="Logger" doc:id="e8a71b8e-ae0b-4a9e-adf4-1910e7144b1d" message="#[payload]"/>
+		<wsc:consume doc:name="Consume" doc:id="90f396c8-1b67-4b63-949a-50a9766a37f3" config-ref="ServicioInformes" operation="GenerarInformeEstrategico">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[%dw 2.0
+output application/xml
+ns ser http://www.example.org/ServicioInformes/
+ns v1 http://example.org/emergencias/types/v1
+var resumen = "INFORME ESTRATEGICO POST-INCIDENTE - Incidente " ++ payload.incidenteId ++ " | Estado: RESUELTO | Servicios movilizados: " ++ payload.numRecursos ++ " | Parametros: " ++ payload.resumenParametros ++ " | Lecciones aprendidas: revisar tiempos de respuesta y optimizar despliegue de recursos."
+---
+ser#GenerarInformeEstrategico: {
+	informeEstrategico: {
+		v1#informeId: "0",
+		v1#tipo: "ESTRATEGICO",
+		v1#resumen: resumen,
+		v1#expedienteId: payload.expedienteId,
+	}
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<logger level="INFO" doc:name="Logger" doc:id="af2c279c-3c66-4f87-ac16-c6e149b1044d" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="5d388f87-ebea-49ba-bb82-75a5d697992b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+ns ns4 http://www.example.org/ServicioInformes/
+---
+{
+	generado: payload.body.ns4#GenerarInformeEstrategicoResponse.generado
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="faee05a4-37cb-4b86-8ef1-edf94c5634b2" >
+			<when expression="#[payload.generado]">
+				<logger level="INFO" doc:name="Informe estrategico generado correctamente" doc:id="bea07760-1491-47e4-a82d-1600e4bb9fd5" message="Informe estrategico generado correctamente"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Informe estrategico no ha sido generado correctamente" doc:id="c514b508-b3fa-4b95-af11-d22afa50f66e" type="ANY" description="Informe estrategico no ha sido generado correctamente"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

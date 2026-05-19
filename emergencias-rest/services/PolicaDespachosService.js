@@ -26,8 +26,10 @@ const despachosIdPUT = ({ id }) => new Promise(
           400,
         ));
       }
-      const query = `SELECT * FROM registro_despliegue WHERE id = ${id}`;
-      const registro_despliegue = await db.query(query);
+      const registro_despliegue = await db.query(
+        'SELECT * FROM registro_despliegue WHERE id = ?',
+        [id],
+      );
       if (registro_despliegue.length === 0) {
         return reject(Service.rejectResponse(
           'Registro de despliegue no encontrado',
@@ -35,9 +37,11 @@ const despachosIdPUT = ({ id }) => new Promise(
         ));
       }
       // Actualizar disponibilidad de la unidad a true
-      const unidadId = registro_despliegue[0].unidad_polica_id;
-      const actualizarUnidadQuery = `UPDATE unidad_polica SET disponibilidad = TRUE WHERE id = ${unidadId}`;
-      const actualizarUnidad = await db.query(actualizarUnidadQuery);  
+      const unidadId = registro_despliegue[0].unidad_policia_id;
+      await db.query(
+        'UPDATE unidad_policia SET disponibilidad = TRUE WHERE id = ?',
+        [unidadId],
+      );
 
       resolve(Service.successResponse({
         id,
@@ -76,8 +80,10 @@ const despachosPOST = ({ despachoPolicial }) => new Promise(
       }
 
       //Validar que el incidente existe
-      const incidenteQuery = `SELECT * FROM incidente WHERE id = ${despachoPolicial.incidenteId}`;
-      const incidente = await db.query(incidenteQuery);
+      const incidente = await db.query(
+        'SELECT * FROM incidente WHERE id = ?',
+        [despachoPolicial.incidenteId],
+      );
       if (incidente.length === 0) {
         return reject(Service.rejectResponse(
           'Incidente no encontrado',
@@ -87,8 +93,10 @@ const despachosPOST = ({ despachoPolicial }) => new Promise(
       // despachoPolicial {unidadId, incidenteId, id, horaDespacho}
       const horaDespacho = new Date().toISOString();
       // Comprobar que la unidad esta disponible (lógica de negocio)
-      const unidadDisponibleQuery = `SELECT * FROM unidad_polica WHERE id = ${despachoPolicial.unidadId} AND disponibilidad = TRUE`;
-      const unidadDisponible = await db.query(unidadDisponibleQuery);
+      const unidadDisponible = await db.query(
+        'SELECT * FROM unidad_policia WHERE id = ? AND disponibilidad = TRUE',
+        [despachoPolicial.unidadId],
+      );
       if (unidadDisponible.length === 0) {
         return reject(Service.rejectResponse(
           'Unidad no disponible',
@@ -96,21 +104,25 @@ const despachosPOST = ({ despachoPolicial }) => new Promise(
         ));
       }
       // Actualizar disponibilidad de la unidad a false
-      const actualizarUnidadQuery = `UPDATE unidad_polica SET disponibilidad = FALSE WHERE id = ${despachoPolicial.unidadId}`;
-      await db.query(actualizarUnidadQuery);
+      await db.query(
+        'UPDATE unidad_policia SET disponibilidad = FALSE WHERE id = ?',
+        [despachoPolicial.unidadId],
+      );
       // Insertar el despacho policial
       /*
       create table if not exists registro_despliegue (
           id INT AUTO_INCREMENT PRIMARY KEY,
           incidente_id INT,
-          unidad_polica_id INT,
+          unidad_policia_id INT,
           hora_despacho TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (incidente_id) REFERENCES incidente(id),
-          FOREIGN KEY (unidad_polica_id) REFERENCES unidad_polica(id)
+          FOREIGN KEY (unidad_policia_id) REFERENCES unidad_policia(id)
       );
       */
-      const insertDespachoQuery = `INSERT INTO registro_despliegue (incidente_id, unidad_polica_id, hora_despacho) VALUES (${despachoPolicial.incidenteId}, ${despachoPolicial.unidadId}, '${horaDespacho}')`;
-      await db.query(insertDespachoQuery);
+      await db.query(
+        'INSERT INTO registro_despliegue (incidente_id, unidad_policia_id, hora_despacho) VALUES (?, ?, ?)',
+        [despachoPolicial.incidenteId, despachoPolicial.unidadId, horaDespacho],
+      );
       despachoPolicial.horaDespacho = horaDespacho;
 
       resolve(Service.successResponse(

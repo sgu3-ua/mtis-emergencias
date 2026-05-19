@@ -12,6 +12,10 @@ const incidentesIdEstadoPUT = async (request, response) => {
   await Controller.handleRequest(request, response, service.incidentesIdEstadoPUT);
 };
 
+const incidentesIdGravedadGET = async (request, response) => {
+  await Controller.handleRequest(request, response, service.incidentesIdGravedadGET);
+};
+
 const registroIndicentePOST = async (request, response) => {
   await Controller.handleRequest(request, response, service.registroIndicentePOST);
 };
@@ -19,5 +23,6 @@ const registroIndicentePOST = async (request, response) => {
 
 module.exports = {
   incidentesIdEstadoPUT,
+  incidentesIdGravedadGET,
   registroIndicentePOST,
 };

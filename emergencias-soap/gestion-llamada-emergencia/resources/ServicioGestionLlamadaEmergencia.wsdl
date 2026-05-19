@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ServicioGestionLlamadaEmergencia" targetNamespace="http://www.example.org/ServicioGestionLlamadaEmergencia/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.example.org/ServicioGestionLlamadaEmergencia/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.example.org/ServicioGestionLlamadaEmergencia/" xmlns:Q1="http://www.example.org/tipos">
+            <xsd:import namespace="http://www.example.org/tipos" schemaLocation="tipos.xsd"/>
+            <xsd:element name="crearOAsociarIncidente">
+        <xsd:complexType>
+          <xsd:sequence>
+          	<xsd:element maxOccurs="1" minOccurs="1" name="idAviso" type="xsd:string"/>
+          	<xsd:element maxOccurs="1" minOccurs="1" name="tipoIncidente" type="Q1:TipoIncidente">
+          	</xsd:element>
+          	<xsd:element maxOccurs="1" minOccurs="1" name="nivelUrgencia" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="crearOAsociarIncidenteResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element maxOccurs="1" minOccurs="1" name="idIncidente" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="gestionarLlamadaEmergencia">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element maxOccurs="1" minOccurs="1" name="aviso" type="Q1:Aviso">
+      			</xsd:element>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+      <xsd:element name="gestionarLlamadaEmergenciaResponse">
+      	<xsd:complexType>
+      		<xsd:sequence>
+
+      			<xsd:element maxOccurs="1" minOccurs="1" name="ok" type="xsd:boolean">
+      			</xsd:element>
+      			<xsd:element maxOccurs="1" minOccurs="0" name="error" type="xsd:string">
+      			</xsd:element>
+      			<xsd:element maxOccurs="1" minOccurs="0" name="idIncidente" type="xsd:int"/>
+      		</xsd:sequence>
+      	</xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="crearOAsociarIncidenteRequest">
+    <wsdl:part name="parameters" element="tns:crearOAsociarIncidente">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="gestionarLlamadaEmergenciaRequest">
+    <wsdl:part name="parameters" element="tns:gestionarLlamadaEmergencia">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="crearOAsociarIncidenteResponse">
+    <wsdl:part name="parameters" element="tns:crearOAsociarIncidenteResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="gestionarLlamadaEmergenciaResponse">
+    <wsdl:part name="parameters" element="tns:gestionarLlamadaEmergenciaResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ServicioGestionLlamadaEmergencia">
+    <wsdl:operation name="gestionarLlamadaEmergencia">
+      <wsdl:input message="tns:gestionarLlamadaEmergenciaRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:gestionarLlamadaEmergenciaResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicioGestionLlamadaEmergenciaSOAP" type="tns:ServicioGestionLlamadaEmergencia">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="gestionarLlamadaEmergencia">
+      <soap:operation soapAction="http://www.example.org/ServicioGestionLlamadaEmergencia/gestionarLlamadaEmergencia"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicioGestionLlamadaEmergencia">
+    <wsdl:port name="ServicioGestionLlamadaEmergenciaSOAP" binding="tns:ServicioGestionLlamadaEmergenciaSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

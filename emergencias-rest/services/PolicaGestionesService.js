@@ -21,7 +21,7 @@ const gestiones_policialesPOST = ( requestParams ) => new Promise(
       } = reqBody;
 
       if (!tipoIncidente || typeof gravedad !== 'string' || typeof latitud !== 'number' || typeof longitud !== 'number') {
-        reject(Service.rejectResponse('Petición inválida o parámetros incorrectos', 400));
+          reject(Service.rejectResponse('Petición inválida o parámetros incorrectos', 400));
         return;
       }
 
@@ -52,6 +52,20 @@ const gestiones_policialesPOST = ( requestParams ) => new Promise(
       resolve(Service.successResponse({
         idIncidente: result.insertId,
       }, 201));
+      // Intentar asignar una unidad policial disponible (modelo de datos actual)
+      try {
+        const unidadRows = await query(
+          'SELECT id FROM unidad_policia WHERE disponibilidad = TRUE LIMIT 1',
+          [],
+        );
+        if (unidadRows && unidadRows.length > 0) {
+          const unidadId = unidadRows[0].id;
+          await query('UPDATE unidad_policia SET disponibilidad = FALSE WHERE id = ?', [unidadId]);
+          await query('INSERT INTO registro_despliegue (incidente_id, unidad_policia_id, hora_despacho) VALUES (?, ?, ?)', [result.insertId, unidadId, new Date().toISOString()]);
+        }
+      } catch (assignErr) {
+        // No propagar fallo de asignación; incidente ya creado
+      }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Database error',

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- This file was auto-generated from WSDL --><!-- by the Apache Axis2 version: 1.6.3  Built on : Jun 27, 2015 (11:17:49 BST) --><serviceGroup>
+    <service name="ServicioExpediente">
+        <messageReceivers>
+            <messageReceiver mep="http://www.w3.org/ns/wsdl/in-out" class="org.example.www.servicioexpediente.ServicioExpedienteMessageReceiverInOut"/>
+        </messageReceivers>
+        <parameter name="ServiceClass">org.example.www.servicioexpediente.ServicioExpedienteSkeleton</parameter>
+        <parameter name="useOriginalwsdl">true</parameter>
+        <parameter name="modifyUserWSDLPortAddress">true</parameter>
+        <operation name="Crear" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioExpediente/">
+            <actionMapping>http://www.example.org/ServicioExpediente/Crear</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioExpediente/ServicioExpediente/CrearResponse</outputActionMapping>
+        </operation>
+        <operation name="Clasificar" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioExpediente/">
+            <actionMapping>http://www.example.org/ServicioExpediente/Clasificar</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioExpediente/ServicioExpediente/ClasificarResponse</outputActionMapping>
+        </operation>
+        <operation name="Obtener" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioExpediente/">
+            <actionMapping>http://www.example.org/ServicioExpediente/Obtener</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioExpediente/ServicioExpediente/ObtenerResponse</outputActionMapping>
+        </operation>
+        <operation name="Archivar" mep="http://www.w3.org/ns/wsdl/in-out" namespace="http://www.example.org/ServicioExpediente/">
+            <actionMapping>http://www.example.org/ServicioExpediente/Archivar</actionMapping>
+            <outputActionMapping>http://www.example.org/ServicioExpediente/ServicioExpediente/ArchivarResponse</outputActionMapping>
+        </operation>
+    </service>
+</serviceGroup>

@@ -61,6 +61,42 @@ const incidentesIdEstadoPUT = ({ id, body }) => new Promise(
     }
   },
 );
+
+/**
+* Consultar gravedad del incidente
+* Devuelve la gravedad almacenada para un incidente ya registrado.
+*
+* id Integer ID del incidente
+* no response value expected for this operation
+* */
+const incidentesIdGravedadGET = ({ id }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      if (typeof id !== 'number' || Number.isNaN(id)) {
+        reject(Service.rejectResponse('Petición inválida o parámetros incorrectos', 400));
+        return;
+      }
+
+      const incidenteRows = await db.query('SELECT id, urgencia FROM incidente WHERE id = ?', [id]);
+      if (!incidenteRows || incidenteRows.length === 0) {
+        reject(Service.rejectResponse('Recurso no encontrado', 404));
+        return;
+      }
+
+      const incidente = incidenteRows[0];
+
+      resolve(Service.successResponse({
+        id: incidente.id,
+        gravedad: incidente.urgencia,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Database error',
+        e.status || 500,
+      ));
+    }
+  },
+);
 /**
 * Guardar registro del incidente
 * Guarda un registro del incidente con todos sus datos, además de relacionarlo con el registro de la llamada o mensajes recibidos.
@@ -106,15 +142,41 @@ const registroIndicentePOST = ({ body, paciente, recursos, sanitarios, hospital 
             reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
             return;
           }
-        } else if (typeof pacienteObj.id === 'number' && pacienteObj.id > 0) {
-          pacienteId = pacienteObj.id;
-          // Verificar que el paciente existe          
-          const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
-          if (!pacienteExists || pacienteExists.length === 0) {
-            reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
-            return;
+        } else if (typeof pacienteObj.idPaciente === 'string' && pacienteObj.idPaciente.trim().length > 0) {
+          // Si viene un idPaciente como string, intentar convertirlo a número
+          const parsedId = parseInt(pacienteObj.idPaciente, 10);
+          if (!Number.isNaN(parsedId) && parsedId > 0) {
+            pacienteId = parsedId;
+            const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+            if (!pacienteExists || pacienteExists.length === 0) {
+              reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+              return;
+              }
+            }
+          } else if (typeof pacienteObj === 'string' && pacienteObj.trim().length > 0) {
+            // Si viene un string simple, intentar convertirlo a número
+            const parsedId = parseInt(pacienteObj.trim(), 10);
+            if (!Number.isNaN(parsedId) && parsedId > 0) {
+              pacienteId = parsedId;
+              const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+              if (!pacienteExists || pacienteExists.length === 0) {
+                reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+                return;
+              }
+            } else {
+              reject(Service.rejectResponse('Paciente inválido. Se esperaba un objeto o un ID numérico válido.', 400));
+              return;
+            }
           }
-        } else {
+          else if (typeof pacienteObj === 'number' && pacienteObj > 0) {
+            pacienteId = pacienteObj;
+            const pacienteExists = await db.query('SELECT id FROM paciente WHERE id = ? LIMIT 1', [pacienteId]);
+            if (!pacienteExists || pacienteExists.length === 0) {
+              reject(Service.rejectResponse('Paciente no encontrado con el id proporcionado', 404));
+              return;
+            }
+          }
+         else {
           const nombre = pacienteObj.nombre;
           const fechaNacimiento = pacienteObj.fechaNacimiento ? new Date(pacienteObj.fechaNacimiento).toISOString().slice(0, 10) : null;
           const sexo = pacienteObj.sexo;
@@ -200,5 +262,6 @@ const registroIndicentePOST = ({ body, paciente, recursos, sanitarios, hospital 
 
 module.exports = {
   incidentesIdEstadoPUT,
+  incidentesIdGravedadGET,
   registroIndicentePOST,
 };

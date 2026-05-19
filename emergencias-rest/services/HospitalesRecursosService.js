@@ -134,7 +134,7 @@ const notificarHospitalIdPOST = ({ id, body }) => new Promise(
     const random = Math.random();
     let mensajeHospital;
     let subject;
-    let aceptaNotificacion = random < 0.5; // Simulamos que el hospital acepta la notificación con un 50% de probabilidad
+    let aceptaNotificacion = random < 0.8; // Simulamos que el hospital acepta la notificación con un 80% de probabilidad
     if (aceptaNotificacion) {
         // El hospital acepta la notificación
         mensajeHospital = `El hospital ${hospital.nombre} ha aceptado la notificación y está preparando los recursos necesarios.`;
@@ -198,10 +198,15 @@ const pacientePOST = ({ body }) => new Promise(
       const params = [paciente.nombre, paciente.fechaNacimiento, paciente.sexo, paciente.alergias];
       const result = await db.query(query, params);
 
-      const pacienteId = result.id; // Suponiendo que el ID del paciente se devuelve en result.id
+      const pacienteId = result.insertId; // Suponiendo que el ID del paciente se devuelve en result.id
       resolve(Service.successResponse({
-        paciente,
-        id: pacienteId
+        paciente : {
+          idPaciente: pacienteId,
+          nombre: paciente.nombre,
+          fechaNacimiento: paciente.fechaNacimiento,
+          sexo: paciente.sexo,
+          alergias: paciente.alergias
+        }
       },
       201
     ));
