@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4a8f516f-930b-4744-bd6e-9ec568ad4bd9" >
+		<http:listener-connection host="0.0.0.0" port="9092" />
+			<http:listener-interceptors >
+	        <http:cors-interceptor allowCredentials="false">
+	            <http:origins >
+	                <http:origin url="http://localhost:5173" accessControlMaxAge="30000" >
+	                    <http:allowed-methods >
+	                        <http:method methodName="OPTIONS" />
+	                        <http:method methodName="GET" />
+	                        <http:method methodName="POST" />
+	                        <http:method methodName="PUT" />
+	                        <http:method methodName="DELETE" />
+	                    </http:allowed-methods>
+	                    <http:allowed-headers >
+	                        <http:header headerName="Content-Type" />
+	                        <http:header headerName="Accept" />
+	                    </http:allowed-headers>
+	                    <http:expose-headers >
+	                        <http:header headerName="Access-Control-Allow-Origin" />
+	                        <http:header headerName="Access-Control-Allow-Methods" />
+	                        <http:header headerName="Access-Control-Allow-Headers" />
+	                    </http:expose-headers>
+	                </http:origin>
+	
+	            </http:origins>
+	        </http:cors-interceptor>
+	    </http:listener-interceptors>
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="d9cac0dd-1ba8-44cf-bbbc-a0a01fa10896" >
+		<http:request-connection host="localhost" port="8080" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="9cb98957-6926-4727-bc54-a400348bffd2" >
+		<http:request-connection host="localhost" port="8080" />
+	</http:request-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="972d19b0-b7bf-4385-b040-38a132f87995" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="sistema_emergencias"/>
+	</db:config>
+	<flow name="recursos-policialesFlow" doc:id="b45b19cd-36ea-4696-bf3f-ccb30d3da389" >
+		<http:listener doc:name="Listener" doc:id="d88658de-7f5f-4e4d-8a7e-221075d2096c" config-ref="HTTP_Listener_config" path="/policia"/>
+		<set-variable value='#[payload.incidenteid]' doc:name="Id incidente" doc:id="85400044-165e-4efb-bafb-966a4570c93a" variableName="incidenteId" />
+		<http:request method="GET" doc:name="Obtener jurisdicción (cuerpo policial)" doc:id="1ac99af0-5320-417c-91f8-8000320743ba" config-ref="HTTP_Request_configuration" path="/jurisdicciones">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"latitud" : "10",
+	"longitud" : "5"
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#[payload.cuerpoCompetente]" doc:name="Cuerpo policial" doc:id="0ed33a0a-6b23-4486-ae85-780f49e4b1a4" variableName="cuerpoPolicial"/>
+		<http:request method="GET" path="/incidentes/{id}/gravedad" config-ref="HTTP_Request_configuration" doc:name="Obtener gravedad incidente">
+		    <http:uri-params><![CDATA[#[{
+		        id: vars.incidenteId
+		    }]]]></http:uri-params>
+		</http:request>
+		<set-variable doc:name="Gravedad" doc:id="6ea97cd3-5727-4a30-854b-76d38cd6f935" variableName="gravedad" value='#[payload.gravedad]'/>
+		<http:request method="GET" doc:name="Obtener recursos" doc:id="d772c497-d258-457a-8728-f32035a0360b" path="/recursos" config-ref="HTTP_Request_configuration1">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"cuerpo" : vars.cuerpoPolicial
+}]]]></http:query-params>
+		</http:request>
+		<choice doc:name="Guardar rescursos policiales según gravedad" doc:id="49ddf128-4520-49b7-bb42-3e3c70d1ab61" >
+			<when expression='#[vars.gravedad == "BAJA"]'>
+				<set-variable value="#[[payload[0]]]" doc:name="Set Variable" doc:id="a85a67a8-5638-46ef-805a-a1dcbeff06e9" variableName="recursosPoliciales"/>
+			</when>
+			<otherwise >
+				<set-variable value="#[payload[0 to 2]]" doc:name="Set Variable" doc:id="8c67220a-72db-4709-bd51-8bfdba624cbc" variableName="recursosPoliciales"/>
+			</otherwise>
+		</choice>
+		<foreach doc:name="For Each" doc:id="e84dced3-bbca-479b-a297-d7c822b6db3d" collection="#[vars.recursosPoliciales]">
+			<db:insert doc:name="Insert" doc:id="95d4c9b8-701f-4d16-86ca-c0028c92a014" config-ref="Database_Config">
+				<db:sql ><![CDATA[INSERT INTO registro_despliegue
+(incidente_id, unidad_policia_id, hora_despacho)
+VALUES (:incidenteId, :unidadPoliciaId, NOW())]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+  incidenteId: vars.incidenteId,
+  unidadPoliciaId: payload.unidadId
+}]]]></db:input-parameters>
+			</db:insert>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="fab3fe63-f42c-4307-a71f-27d54f6534d9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "mensaje": "Orden de movilización de policía registrada con éxito",
+  "idIncidente": vars.incidenteId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		
+	</flow>
+</mule>
