@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Llamada de Emergencia - Cliente API</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="assets/favicon.ico" sizes="32x32">
 </head>
 <body>
     <main class="container">
@@ -14,13 +15,44 @@
         <hr>
 
         <div>
-            
-            <label for="xsd">xsd</label>
-            <input type="text" id="xsd" name="xsd" required>
+            <form>
+            <label for="telefono">Teléfono</label>
+            <input type="text" id="telefono" name="telefono" required>
+
+            <label for="localizacion">Localización</label>
+            <input type="text" id="localizacion" name="localizacion" required>
+
+            <label for="descripcion">Descripción</label>
+            <input type="text" id="descripcion" name="descripcion" required>
+
+            <label for="afectados">Afectados</label>
+            <input type="number" id="afectados" name="afectados" required>
+
+            <label for="hayFuego">Hay Fuego</label>
+            <input type="checkbox" id="hayFuego" name="hayFuego">
+
+            <label for="hayHumo">Hay Humo</label>
+            <input type="checkbox" id="hayHumo" name="hayHumo">
+
+            <label for="personasAtrapadas">Personas Atrapadas</label>
+            <input type="checkbox" id="personasAtrapadas" name="personasAtrapadas" required>
+
+            <label for="personasHeridas">Personas Heridas</label>
+            <input type="checkbox" id="personasHeridas" name="personasHeridas" required>
+
+            <label for="riesgoSeguridad">Riesgo de Seguridad</label>
+            <input type="checkbox" id="riesgoSeguridad" name="riesgoSeguridad">
+
+            <label for="riesgoEstructural">Riesgo Estructural</label>
+            <input type="checkbox" id="riesgoEstructural" name="riesgoEstructural">
+
+            <label for="alteracionOrdenPublico">Alteración del Orden Público</label>
+            <input type="checkbox" id="alteracionOrdenPublico" name="alteracionOrdenPublico">
 
             <div class="buttons">
                 <button type="button" id="llamadaEmergencia">Llamada de Emergencia</button>
             </div>
+            </form>
     
         </div>
 
