@@ -172,12 +172,16 @@ document.addEventListener('DOMContentLoaded', function () {
   if (policia) {
     policia.addEventListener('click', function (e) {
       e.preventDefault();
-      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      const incidenteElem = document.getElementById('incidenteid');
+      const incidenteParsed = incidenteElem ? parseInt(incidenteElem.value, 10) : null;
+      const incidenteid = Number.isNaN(incidenteParsed) ? null : incidenteParsed;
+      const bodyObj = { incidenteid };
+      console.log('POST', emergenciaPolicia, 'body ->', JSON.stringify(bodyObj));
       show('<p class="muted">Solicitando atención policial...</p>');
       fetch(emergenciaPolicia, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incidenteid })
+        body: JSON.stringify(bodyObj)
       })
       .then(r => r.json())
       .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))

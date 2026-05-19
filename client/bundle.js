@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const emergenciaHospital = `${baseIP}:8081/emergenciaHospital`;
   const emergenciaPolicia = `${baseIP}:9092/policia`;
-  const emergenciaBomberos = `${baseIP}:8082/despachos-bomberos`;
+  const emergenciaBomberos = `${baseIP}:8082/api/despachos-bomberos`;
 
   const llamadaEmergencia = `/llamadas`; // Soap
   const cierreIncidente = '/cerrarIncidente'; // Soap
@@ -173,12 +173,16 @@ document.addEventListener('DOMContentLoaded', function () {
   if (policia) {
     policia.addEventListener('click', function (e) {
       e.preventDefault();
-      const incidenteid = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
+      const incidenteElem = document.getElementById('incidenteid');
+      const incidenteParsed = incidenteElem ? parseInt(incidenteElem.value, 10) : null;
+      const incidenteid = Number.isNaN(incidenteParsed) ? null : incidenteParsed;
+      const bodyObj = { incidenteid };
+      console.log('POST', emergenciaPolicia, 'body ->', JSON.stringify(bodyObj));
       show('<p class="muted">Solicitando atención policial...</p>');
       fetch(emergenciaPolicia, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incidenteid })
+        body: JSON.stringify(bodyObj)
       })
       .then(r => r.json())
       .then(data => show(`<pre class="json">${JSON.stringify(data, null, 2)}</pre>`))
@@ -200,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       const idIncidente = document.getElementById('incidenteid') ? Number(document.getElementById('incidenteid').value) : undefined;
       const gravedad = document.getElementById('gravedad') ? document.getElementById('gravedad').value : undefined;
-      const vehiculosRequeridos = document.getElementById('vehiculosRequeridos') ? Number(document.getElementById('vehiculosRequeridos').value) : undefined;
+      const vehiculosRequeridos = document.getElementById('vehiculosRequeridos') ? document.getElementById('vehiculosRequeridos').value : undefined;
       
       show('<p class="muted">Solicitando atención de bomberos...</p>');
       fetch(emergenciaBomberos, {
