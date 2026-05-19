@@ -5,5 +5,8 @@
   "dependencies": {
     "soap": "^1.7.1",
     "vite": "^7.3.1"
+  },
+  "devDependencies": {
+    "browserify": "^17.0.1"
   }
 }
